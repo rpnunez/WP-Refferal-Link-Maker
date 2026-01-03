@@ -24,6 +24,11 @@ class WP_Referral_Link_Maker_Admin {
     private $version;
 
     /**
+     * Allowed values for link rel attribute.
+     */
+    const ALLOWED_REL_VALUES = array( '', 'nofollow', 'sponsored', 'nofollow sponsored' );
+
+    /**
      * Initialize the class and set its properties.
      *
      * @param string $plugin_name The name of this plugin.
@@ -234,9 +239,8 @@ class WP_Referral_Link_Maker_Admin {
         }
 
         if ( isset( $input['link_rel_attribute'] ) ) {
-            $allowed_rel_values = array( '', 'nofollow', 'sponsored', 'nofollow sponsored' );
             $link_rel_attribute = sanitize_text_field( $input['link_rel_attribute'] );
-            if ( in_array( $link_rel_attribute, $allowed_rel_values, true ) ) {
+            if ( in_array( $link_rel_attribute, self::ALLOWED_REL_VALUES, true ) ) {
                 $sanitized['link_rel_attribute'] = $link_rel_attribute;
             } else {
                 $sanitized['link_rel_attribute'] = '';

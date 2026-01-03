@@ -149,7 +149,7 @@ class WP_Referral_Link_Maker_AI_Engine {
         
         // Add rel attribute instruction only if configured
         if ( ! empty( $link_rel ) ) {
-            $prompt .= sprintf( "6. Use HTML anchor tags with rel=\"%s\" attribute\n", $link_rel );
+            $prompt .= sprintf( "6. Use HTML anchor tags with rel=\"%s\" attribute\n", esc_attr( $link_rel ) );
         } else {
             $prompt .= "6. Use HTML anchor tags without rel attribute\n";
         }
@@ -172,15 +172,15 @@ class WP_Referral_Link_Maker_AI_Engine {
      * @return string Escaped content.
      */
     private function escape_prompt_content( $content ) {
-        // Replace potential prompt injection keywords with placeholders
+        // Replace potential prompt injection keywords with placeholders (case-insensitive)
         $replacements = array(
-            'INSTRUCTIONS:' => '[INSTRUCTIONS-TEXT]',
-            'MODIFIED CONTENT:' => '[MODIFIED-CONTENT-TEXT]',
-            'ORIGINAL CONTENT:' => '[ORIGINAL-CONTENT-TEXT]',
-            'REFERRAL LINKS TO INSERT:' => '[REFERRAL-LINKS-TEXT]',
+            '/INSTRUCTIONS\s*:/i' => '[INSTRUCTIONS-TEXT]:',
+            '/MODIFIED\s+CONTENT\s*:/i' => '[MODIFIED-CONTENT-TEXT]:',
+            '/ORIGINAL\s+CONTENT\s*:/i' => '[ORIGINAL-CONTENT-TEXT]:',
+            '/REFERRAL\s+LINKS\s+TO\s+INSERT\s*:/i' => '[REFERRAL-LINKS-TEXT]:',
         );
         
-        return str_replace( array_keys( $replacements ), array_values( $replacements ), $content );
+        return preg_replace( array_keys( $replacements ), array_values( $replacements ), $content );
     }
 
     /**
