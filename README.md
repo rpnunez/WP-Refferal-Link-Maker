@@ -117,10 +117,12 @@ This plugin is designed to work with the [Meow Apps AI Engine](https://wordpress
 ### How It Works
 
 1. The plugin identifies posts marked for AI processing
-2. Using the AI Engine API, it analyzes post content
-3. Based on referral link keywords and AI context, it intelligently inserts links
-4. Processed posts are moved to the configured status (default: pending review)
-5. Administrators review and approve the changes
+2. Using the AI Engine's `simpleTextQuery()` API, it sends post content and referral link context to the AI
+3. The AI intelligently analyzes the content and determines optimal placement for each referral link
+4. Links are inserted naturally where they are contextually relevant, respecting maximum insertion limits
+5. Processed posts are moved to the configured status (default: pending review)
+6. Administrators review and approve the changes
+7. If AI Engine is unavailable, the plugin falls back to simple keyword matching
 
 ## Cron Automation
 

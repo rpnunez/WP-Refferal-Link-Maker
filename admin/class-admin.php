@@ -194,6 +194,14 @@ class WP_Referral_Link_Maker_Admin {
             'wp-referral-link-maker-settings',
             'wp_referral_link_maker_automation'
         );
+
+        add_settings_field(
+            'link_rel_attribute',
+            __( 'Link Rel Attribute', 'wp-referral-link-maker' ),
+            array( $this, 'link_rel_attribute_callback' ),
+            'wp-referral-link-maker-settings',
+            'wp_referral_link_maker_automation'
+        );
     }
 
     /**
@@ -223,6 +231,10 @@ class WP_Referral_Link_Maker_Admin {
 
         if ( isset( $input['post_status_after_edit'] ) ) {
             $sanitized['post_status_after_edit'] = sanitize_text_field( $input['post_status_after_edit'] );
+        }
+
+        if ( isset( $input['link_rel_attribute'] ) ) {
+            $sanitized['link_rel_attribute'] = wp_referral_link_maker_sanitize_rel_attribute( $input['link_rel_attribute'] );
         }
 
         return $sanitized;
@@ -311,6 +323,23 @@ class WP_Referral_Link_Maker_Admin {
             <option value="publish" <?php selected( $value, 'publish' ); ?>><?php esc_html_e( 'Published', 'wp-referral-link-maker' ); ?></option>
         </select>
         <p class="description"><?php esc_html_e( 'Status to set posts after AI processing.', 'wp-referral-link-maker' ); ?></p>
+        <?php
+    }
+
+    /**
+     * Link rel attribute field callback.
+     */
+    public function link_rel_attribute_callback() {
+        $settings = get_option( 'wp_referral_link_maker_settings' );
+        $value = isset( $settings['link_rel_attribute'] ) ? $settings['link_rel_attribute'] : 'nofollow';
+        ?>
+        <select name="wp_referral_link_maker_settings[link_rel_attribute]">
+            <option value="nofollow" <?php selected( $value, 'nofollow' ); ?>><?php esc_html_e( 'nofollow', 'wp-referral-link-maker' ); ?></option>
+            <option value="sponsored" <?php selected( $value, 'sponsored' ); ?>><?php esc_html_e( 'sponsored', 'wp-referral-link-maker' ); ?></option>
+            <option value="nofollow sponsored" <?php selected( $value, 'nofollow sponsored' ); ?>><?php esc_html_e( 'nofollow sponsored', 'wp-referral-link-maker' ); ?></option>
+            <option value="" <?php selected( $value, '' ); ?>><?php esc_html_e( 'None', 'wp-referral-link-maker' ); ?></option>
+        </select>
+        <p class="description"><?php esc_html_e( 'The rel attribute to use for referral links (affects SEO).', 'wp-referral-link-maker' ); ?></p>
         <?php
     }
 
