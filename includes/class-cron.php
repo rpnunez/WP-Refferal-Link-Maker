@@ -202,6 +202,10 @@ class WP_Referral_Link_Maker_Cron {
      */
     private function apply_referral_links( $content, $links ) {
         // Simple keyword replacement fallback
+        
+        // Get link attributes from settings
+        $settings = get_option( 'wp_referral_link_maker_settings', array() );
+        $link_rel = ! empty( $settings['link_rel_attribute'] ) ? $settings['link_rel_attribute'] : 'nofollow';
 
         foreach ( $links as $link ) {
             $keyword = get_post_meta( $link->ID, '_ref_link_keyword', true );
@@ -211,8 +215,14 @@ class WP_Referral_Link_Maker_Cron {
                 continue;
             }
 
+            // Build link HTML with rel attribute if configured
+            if ( ! empty( $link_rel ) ) {
+                $link_html = sprintf( '<a href="%s" rel="%s">%s</a>', esc_url( $url ), esc_attr( $link_rel ), esc_html( $keyword ) );
+            } else {
+                $link_html = sprintf( '<a href="%s">%s</a>', esc_url( $url ), esc_html( $keyword ) );
+            }
+            
             // Replace first occurrence of keyword with link
-            $link_html = sprintf( '<a href="%s" rel="nofollow">%s</a>', esc_url( $url ), esc_html( $keyword ) );
             $content = preg_replace(
                 '/\b' . preg_quote( $keyword, '/' ) . '\b/',
                 $link_html,
