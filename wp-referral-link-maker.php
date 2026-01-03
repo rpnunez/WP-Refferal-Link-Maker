@@ -1,0 +1,62 @@
+<?php
+/**
+ * Plugin Name: WP Referral Link Maker
+ * Plugin URI: https://github.com/rpnunez/WP-Refferal-Link-Maker
+ * Description: A WordPress plugin that integrates referral links into existing posts using AI capabilities from Meow Apps AI Engine plugin.
+ * Version: 1.0.0
+ * Author: rpnunez
+ * Author URI: https://github.com/rpnunez
+ * License: GPL-2.0+
+ * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
+ * Text Domain: wp-referral-link-maker
+ * Domain Path: /languages
+ *
+ * @package WP_Referral_Link_Maker
+ */
+
+// If this file is called directly, abort.
+if ( ! defined( 'WPINC' ) ) {
+    die;
+}
+
+/**
+ * Currently plugin version.
+ */
+define( 'WP_REFERRAL_LINK_MAKER_VERSION', '1.0.0' );
+define( 'WP_REFERRAL_LINK_MAKER_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+define( 'WP_REFERRAL_LINK_MAKER_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+
+/**
+ * The code that runs during plugin activation.
+ */
+function activate_wp_referral_link_maker() {
+    require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'includes/class-activator.php';
+    WP_Referral_Link_Maker_Activator::activate();
+}
+
+/**
+ * The code that runs during plugin deactivation.
+ */
+function deactivate_wp_referral_link_maker() {
+    require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'includes/class-deactivator.php';
+    WP_Referral_Link_Maker_Deactivator::deactivate();
+}
+
+register_activation_hook( __FILE__, 'activate_wp_referral_link_maker' );
+register_deactivation_hook( __FILE__, 'deactivate_wp_referral_link_maker' );
+
+/**
+ * The core plugin class that is used to define internationalization,
+ * admin-specific hooks, and public-facing site hooks.
+ */
+require WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'includes/class-wp-referral-link-maker.php';
+
+/**
+ * Begins execution of the plugin.
+ */
+function run_wp_referral_link_maker() {
+    $plugin = new WP_Referral_Link_Maker();
+    $plugin->run();
+}
+
+run_wp_referral_link_maker();
