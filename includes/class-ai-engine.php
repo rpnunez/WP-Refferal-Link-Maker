@@ -23,7 +23,8 @@ class WP_Referral_Link_Maker_AI_Engine {
 
     /**
      * Maximum content length for AI processing (characters).
-     * Prevents exceeding AI model token limits.
+     * This is a conservative character-based approximation since AI models 
+     * count tokens differently. ~15,000 chars ≈ ~3,750 tokens for most models.
      *
      * @var int
      */
@@ -130,10 +131,16 @@ class WP_Referral_Link_Maker_AI_Engine {
         
         $links_description = '';
         foreach ( $links_info as $link ) {
+            // Validate URL format
+            $url = esc_url_raw( $link['url'] );
+            if ( empty( $url ) || ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
+                continue; // Skip invalid URLs
+            }
+            
             $links_description .= sprintf(
                 "- Keyword: '%s', URL: '%s', Max insertions: %d",
                 $link['keyword'],
-                esc_url_raw( $link['url'] ),
+                $url,
                 $link['max_insertions']
             );
             if ( ! empty( $link['context'] ) ) {
@@ -171,16 +178,20 @@ class WP_Referral_Link_Maker_AI_Engine {
     /**
      * Escape content for AI prompt to prevent prompt injection.
      *
+     * This method uses word boundaries to avoid false positives while
+     * preventing common prompt injection patterns.
+     *
      * @param string $content Content to escape.
      * @return string Escaped content.
      */
     private function escape_prompt_content( $content ) {
         // Replace potential prompt injection keywords with placeholders (case-insensitive)
+        // Using word boundaries (\b) to avoid false positives in normal content
         $replacements = array(
-            '/INSTRUCTIONS\s*:/i' => '[INSTRUCTIONS-TEXT]:',
-            '/MODIFIED\s+CONTENT\s*:/i' => '[MODIFIED-CONTENT-TEXT]:',
-            '/ORIGINAL\s+CONTENT\s*:/i' => '[ORIGINAL-CONTENT-TEXT]:',
-            '/REFERRAL\s+LINKS\s+TO\s+INSERT\s*:/i' => '[REFERRAL-LINKS-TEXT]:',
+            '/\bINSTRUCTIONS\s*:/i' => '[INSTRUCTIONS-TEXT]:',
+            '/\bMODIFIED\s+CONTENT\s*:/i' => '[MODIFIED-CONTENT-TEXT]:',
+            '/\bORIGINAL\s+CONTENT\s*:/i' => '[ORIGINAL-CONTENT-TEXT]:',
+            '/\bREFERRAL\s+LINKS\s+TO\s+INSERT\s*:/i' => '[REFERRAL-LINKS-TEXT]:',
         );
         
         return preg_replace( array_keys( $replacements ), array_values( $replacements ), $content );
