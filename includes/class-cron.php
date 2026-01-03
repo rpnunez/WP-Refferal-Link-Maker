@@ -112,9 +112,6 @@ class WP_Referral_Link_Maker_Cron {
         // Get plugin settings
         $settings = get_option( 'wp_referral_link_maker_settings', array() );
 
-        // This is where AI Engine integration would happen
-        // For now, we'll mark the post for manual review
-
         // Get referral links
         $referral_links = $this->get_referral_links();
 
@@ -122,8 +119,23 @@ class WP_Referral_Link_Maker_Cron {
             return;
         }
 
-        // Create a pending version of the post
-        $updated_content = $this->apply_referral_links( $post->post_content, $referral_links );
+        // Use AI Engine for intelligent link insertion
+        require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'includes/class-ai-engine.php';
+        $ai_engine = new WP_Referral_Link_Maker_AI_Engine();
+
+        if ( $ai_engine->is_available() ) {
+            // Use AI Engine for intelligent insertion
+            $updated_content = $ai_engine->insert_referral_links( $post->post_content, $referral_links );
+            
+            // Check if AI Engine returned an error
+            if ( is_wp_error( $updated_content ) ) {
+                // Fallback to simple replacement
+                $updated_content = $this->apply_referral_links( $post->post_content, $referral_links );
+            }
+        } else {
+            // Fallback to simple replacement if AI Engine is not available
+            $updated_content = $this->apply_referral_links( $post->post_content, $referral_links );
+        }
 
         // Update post with new content and set to pending
         $post_status = ! empty( $settings['post_status_after_edit'] ) ? $settings['post_status_after_edit'] : 'pending';
@@ -163,13 +175,14 @@ class WP_Referral_Link_Maker_Cron {
     /**
      * Apply referral links to post content.
      *
+     * This is a fallback method used when AI Engine is not available.
+     *
      * @param string $content Original post content.
      * @param array  $links   Array of referral link objects.
      * @return string Modified content with referral links.
      */
     private function apply_referral_links( $content, $links ) {
-        // This is a simplified implementation
-        // In a real implementation, this would use AI Engine to intelligently insert links
+        // Simple keyword replacement fallback
 
         foreach ( $links as $link ) {
             $keyword = get_post_meta( $link->ID, '_ref_link_keyword', true );
