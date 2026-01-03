@@ -125,6 +125,9 @@ class WP_Referral_Link_Maker_AI_Engine {
         $settings = get_option( 'wp_referral_link_maker_settings', array() );
         $link_rel = isset( $settings['link_rel_attribute'] ) ? $settings['link_rel_attribute'] : 'nofollow';
         
+        // Validate and sanitize the rel attribute
+        $link_rel = wp_referral_link_maker_sanitize_rel_attribute( $link_rel );
+        
         $links_description = '';
         foreach ( $links_info as $link ) {
             $links_description .= sprintf(

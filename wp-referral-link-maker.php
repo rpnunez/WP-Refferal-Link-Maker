@@ -27,6 +27,27 @@ define( 'WP_REFERRAL_LINK_MAKER_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WP_REFERRAL_LINK_MAKER_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 /**
+ * Get allowed rel attribute values for referral links.
+ *
+ * @return array Allowed rel attribute values.
+ */
+function wp_referral_link_maker_get_allowed_rel_values() {
+    return array( '', 'nofollow', 'sponsored', 'nofollow sponsored' );
+}
+
+/**
+ * Validate and sanitize link rel attribute value.
+ *
+ * @param string $value Value to validate.
+ * @return string Sanitized value or empty string if invalid.
+ */
+function wp_referral_link_maker_sanitize_rel_attribute( $value ) {
+    $allowed = wp_referral_link_maker_get_allowed_rel_values();
+    $value = sanitize_text_field( $value );
+    return in_array( $value, $allowed, true ) ? $value : '';
+}
+
+/**
  * The code that runs during plugin activation.
  */
 function activate_wp_referral_link_maker() {

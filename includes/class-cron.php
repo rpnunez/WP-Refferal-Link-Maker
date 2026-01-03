@@ -227,6 +227,9 @@ class WP_Referral_Link_Maker_Cron {
         // Get link attributes from settings
         $settings = get_option( 'wp_referral_link_maker_settings', array() );
         $link_rel = isset( $settings['link_rel_attribute'] ) ? $settings['link_rel_attribute'] : 'nofollow';
+        
+        // Validate and sanitize the rel attribute
+        $link_rel = wp_referral_link_maker_sanitize_rel_attribute( $link_rel );
 
         foreach ( $links as $link ) {
             $keyword = get_post_meta( $link->ID, '_ref_link_keyword', true );
