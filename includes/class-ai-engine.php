@@ -83,8 +83,11 @@ class WP_Referral_Link_Maker_AI_Engine {
                 return new WP_Error( 'ai_engine_empty_response', __( 'AI Engine returned an empty response.', 'wp-referral-link-maker' ) );
             }
 
-            // Extract the modified content from AI response
+            // Validate and extract the modified content from AI response
             $modified_content = $this->extract_content_from_response( $response, $content );
+            
+            // Sanitize the AI response to prevent XSS attacks
+            $modified_content = $this->sanitize_ai_response( $modified_content );
 
             return $modified_content;
         } catch ( Exception $e ) {
@@ -142,6 +145,18 @@ class WP_Referral_Link_Maker_AI_Engine {
         $prompt .= "MODIFIED CONTENT (return only the HTML with links inserted):";
 
         return $prompt;
+    }
+
+    /**
+     * Sanitize AI response to prevent malicious content.
+     *
+     * @param string $content Content from AI response.
+     * @return string Sanitized content.
+     */
+    private function sanitize_ai_response( $content ) {
+        // Use WordPress's wp_kses_post to allow only safe HTML tags
+        // This allows common formatting tags but blocks scripts and other dangerous elements
+        return wp_kses_post( $content );
     }
 
     /**
