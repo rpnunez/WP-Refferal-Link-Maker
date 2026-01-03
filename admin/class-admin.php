@@ -234,7 +234,13 @@ class WP_Referral_Link_Maker_Admin {
         }
 
         if ( isset( $input['link_rel_attribute'] ) ) {
-            $sanitized['link_rel_attribute'] = sanitize_text_field( $input['link_rel_attribute'] );
+            $allowed_rel_values = array( '', 'nofollow', 'sponsored', 'nofollow sponsored' );
+            $link_rel_attribute = sanitize_text_field( $input['link_rel_attribute'] );
+            if ( in_array( $link_rel_attribute, $allowed_rel_values, true ) ) {
+                $sanitized['link_rel_attribute'] = $link_rel_attribute;
+            } else {
+                $sanitized['link_rel_attribute'] = '';
+            }
         }
 
         return $sanitized;

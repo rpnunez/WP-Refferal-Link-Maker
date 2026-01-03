@@ -22,6 +22,14 @@ class WP_Referral_Link_Maker_AI_Engine {
     const MIN_RESPONSE_LENGTH_RATIO = 0.5;
 
     /**
+     * Maximum content length for AI processing (characters).
+     * Prevents exceeding AI model token limits.
+     *
+     * @var int
+     */
+    const MAX_CONTENT_LENGTH = 15000;
+
+    /**
      * Check if AI Engine plugin is available.
      *
      * @return bool True if AI Engine is active and available.
@@ -71,6 +79,11 @@ class WP_Referral_Link_Maker_AI_Engine {
             return $content;
         }
 
+        // Validate content length to prevent token limit issues
+        if ( strlen( $content ) > self::MAX_CONTENT_LENGTH ) {
+            return new WP_Error( 'ai_engine_content_too_long', __( 'Post content exceeds maximum length for AI processing.', 'wp-referral-link-maker' ) );
+        }
+
         // Build AI prompt
         $prompt = $this->build_ai_prompt( $content, $links_info );
 
@@ -85,6 +98,11 @@ class WP_Referral_Link_Maker_AI_Engine {
 
             // Validate and extract the modified content from AI response
             $modified_content = $this->extract_content_from_response( $response, $content );
+            
+            // Check if validation failed
+            if ( is_wp_error( $modified_content ) ) {
+                return $modified_content;
+            }
             
             // Sanitize the AI response to prevent XSS attacks
             $modified_content = $this->sanitize_ai_response( $modified_content );
@@ -112,7 +130,7 @@ class WP_Referral_Link_Maker_AI_Engine {
             $links_description .= sprintf(
                 "- Keyword: '%s', URL: '%s', Max insertions: %d",
                 $link['keyword'],
-                $link['url'],
+                esc_url_raw( $link['url'] ),
                 $link['max_insertions']
             );
             if ( ! empty( $link['context'] ) ) {
@@ -131,7 +149,7 @@ class WP_Referral_Link_Maker_AI_Engine {
         
         // Add rel attribute instruction only if configured
         if ( ! empty( $link_rel ) ) {
-            $prompt .= sprintf( "6. Use HTML anchor tags with rel=\"%s\" attribute\n", esc_attr( $link_rel ) );
+            $prompt .= sprintf( "6. Use HTML anchor tags with rel=\"%s\" attribute\n", $link_rel );
         } else {
             $prompt .= "6. Use HTML anchor tags without rel attribute\n";
         }
@@ -141,10 +159,28 @@ class WP_Referral_Link_Maker_AI_Engine {
         $prompt .= "REFERRAL LINKS TO INSERT:\n";
         $prompt .= $links_description . "\n";
         $prompt .= "ORIGINAL CONTENT:\n";
-        $prompt .= $content . "\n\n";
+        $prompt .= $this->escape_prompt_content( $content ) . "\n\n";
         $prompt .= "MODIFIED CONTENT (return only the HTML with links inserted):";
 
         return $prompt;
+    }
+
+    /**
+     * Escape content for AI prompt to prevent prompt injection.
+     *
+     * @param string $content Content to escape.
+     * @return string Escaped content.
+     */
+    private function escape_prompt_content( $content ) {
+        // Replace potential prompt injection keywords with placeholders
+        $replacements = array(
+            'INSTRUCTIONS:' => '[INSTRUCTIONS-TEXT]',
+            'MODIFIED CONTENT:' => '[MODIFIED-CONTENT-TEXT]',
+            'ORIGINAL CONTENT:' => '[ORIGINAL-CONTENT-TEXT]',
+            'REFERRAL LINKS TO INSERT:' => '[REFERRAL-LINKS-TEXT]',
+        );
+        
+        return str_replace( array_keys( $replacements ), array_values( $replacements ), $content );
     }
 
     /**
@@ -154,9 +190,18 @@ class WP_Referral_Link_Maker_AI_Engine {
      * @return string Sanitized content.
      */
     private function sanitize_ai_response( $content ) {
-        // Use WordPress's wp_kses_post to allow only safe HTML tags
-        // This allows common formatting tags but blocks scripts and other dangerous elements
-        return wp_kses_post( $content );
+        // Start from WordPress's default allowed HTML for post content
+        $allowed_html = wp_kses_allowed_html( 'post' );
+
+        // Ensure that <a> tags always allow the "rel" attribute so that
+        // AI-inserted links can use configurations like "sponsored" or
+        // combined values such as "nofollow sponsored" without being stripped
+        if ( isset( $allowed_html['a'] ) && is_array( $allowed_html['a'] ) ) {
+            $allowed_html['a']['rel'] = true;
+        }
+
+        // Use wp_kses with the customized allowed HTML to sanitize the content
+        return wp_kses( $content, $allowed_html );
     }
 
     /**
@@ -164,17 +209,32 @@ class WP_Referral_Link_Maker_AI_Engine {
      *
      * @param string $response AI response.
      * @param string $original Original content as fallback.
-     * @return string Extracted content.
+     * @return string|WP_Error Extracted content or error on invalid AI response.
      */
     private function extract_content_from_response( $response, $original ) {
         // The AI should return the content directly
         // Trim any extra whitespace or formatting
         $response = trim( $response );
 
-        // If response is empty or significantly shorter than original, return original
-        $min_length = intval( strlen( $original ) * self::MIN_RESPONSE_LENGTH_RATIO );
-        if ( empty( $response ) || strlen( $response ) < $min_length ) {
-            return $original;
+        // If response is empty, return an error
+        if ( empty( $response ) ) {
+            return new WP_Error(
+                'ai_engine_invalid_response',
+                __( 'AI Engine returned an empty response.', 'wp-referral-link-maker' )
+            );
+        }
+
+        // Compare stripped text content to handle HTML compression scenarios
+        $original_text = wp_strip_all_tags( $original );
+        $response_text = wp_strip_all_tags( $response );
+        
+        $min_text_length = intval( strlen( $original_text ) * self::MIN_RESPONSE_LENGTH_RATIO );
+        
+        if ( strlen( $response_text ) < $min_text_length ) {
+            return new WP_Error(
+                'ai_engine_invalid_response',
+                __( 'AI Engine returned a response that is too short.', 'wp-referral-link-maker' )
+            );
         }
 
         return $response;

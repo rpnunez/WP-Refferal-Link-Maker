@@ -120,7 +120,7 @@ class WP_Referral_Link_Maker_Cron {
         }
 
         // Try using AI Engine for intelligent link insertion
-        $updated_content = $this->get_ai_processed_content( $post->post_content, $referral_links );
+        $updated_content = $this->get_ai_processed_content( $post->post_content, $referral_links, $post->ID );
         
         // If AI processing failed, use fallback
         if ( is_null( $updated_content ) ) {
@@ -151,9 +151,10 @@ class WP_Referral_Link_Maker_Cron {
      *
      * @param string $content         Original post content.
      * @param array  $referral_links  Array of referral link objects.
+     * @param int    $post_id         Post ID for logging purposes.
      * @return string|null Processed content or null if AI processing failed.
      */
-    private function get_ai_processed_content( $content, $referral_links ) {
+    private function get_ai_processed_content( $content, $referral_links, $post_id = 0 ) {
         // Check if AI Engine class is already loaded
         if ( ! class_exists( 'WP_Referral_Link_Maker_AI_Engine' ) ) {
             require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'includes/class-ai-engine.php';
@@ -162,6 +163,8 @@ class WP_Referral_Link_Maker_Cron {
         $ai_engine = new WP_Referral_Link_Maker_AI_Engine();
 
         if ( ! $ai_engine->is_available() ) {
+            // Log that AI Engine is not available
+            error_log( sprintf( 'WP Referral Link Maker: AI Engine not available for post %d. Using fallback method.', $post_id ) );
             return null;
         }
 
@@ -169,8 +172,21 @@ class WP_Referral_Link_Maker_Cron {
         
         // Check if AI Engine returned an error
         if ( is_wp_error( $updated_content ) ) {
+            // Log the error for troubleshooting
+            error_log( sprintf( 'WP Referral Link Maker: AI Engine error for post %d: %s. Using fallback method.', $post_id, $updated_content->get_error_message() ) );
+            
+            // Store failure information in post meta
+            update_post_meta( $post_id, '_wp_rlm_ai_failure', array(
+                'time' => current_time( 'mysql' ),
+                'error' => $updated_content->get_error_code(),
+                'message' => $updated_content->get_error_message(),
+            ) );
+            
             return null;
         }
+
+        // Clear any previous failure meta
+        delete_post_meta( $post_id, '_wp_rlm_ai_failure' );
 
         return $updated_content;
     }
@@ -201,11 +217,16 @@ class WP_Referral_Link_Maker_Cron {
      * @return string Modified content with referral links.
      */
     private function apply_referral_links( $content, $links ) {
+        // Ensure $links is iterable before processing to avoid fatal errors
+        if ( ! is_array( $links ) ) {
+            return $content;
+        }
+        
         // Simple keyword replacement fallback
         
         // Get link attributes from settings
         $settings = get_option( 'wp_referral_link_maker_settings', array() );
-        $link_rel = ! empty( $settings['link_rel_attribute'] ) ? $settings['link_rel_attribute'] : 'nofollow';
+        $link_rel = isset( $settings['link_rel_attribute'] ) ? $settings['link_rel_attribute'] : 'nofollow';
 
         foreach ( $links as $link ) {
             $keyword = get_post_meta( $link->ID, '_ref_link_keyword', true );
