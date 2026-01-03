@@ -119,21 +119,11 @@ class WP_Referral_Link_Maker_Cron {
             return;
         }
 
-        // Use AI Engine for intelligent link insertion
-        require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'includes/class-ai-engine.php';
-        $ai_engine = new WP_Referral_Link_Maker_AI_Engine();
-
-        if ( $ai_engine->is_available() ) {
-            // Use AI Engine for intelligent insertion
-            $updated_content = $ai_engine->insert_referral_links( $post->post_content, $referral_links );
-            
-            // Check if AI Engine returned an error
-            if ( is_wp_error( $updated_content ) ) {
-                // Fallback to simple replacement
-                $updated_content = $this->apply_referral_links( $post->post_content, $referral_links );
-            }
-        } else {
-            // Fallback to simple replacement if AI Engine is not available
+        // Try using AI Engine for intelligent link insertion
+        $updated_content = $this->get_ai_processed_content( $post->post_content, $referral_links );
+        
+        // If AI processing failed, use fallback
+        if ( is_null( $updated_content ) ) {
             $updated_content = $this->apply_referral_links( $post->post_content, $referral_links );
         }
 
@@ -154,6 +144,35 @@ class WP_Referral_Link_Maker_Cron {
 
         // Log the action
         do_action( 'wp_referral_link_maker_post_processed', $post->ID );
+    }
+
+    /**
+     * Get AI processed content with referral links.
+     *
+     * @param string $content         Original post content.
+     * @param array  $referral_links  Array of referral link objects.
+     * @return string|null Processed content or null if AI processing failed.
+     */
+    private function get_ai_processed_content( $content, $referral_links ) {
+        // Check if AI Engine class is already loaded
+        if ( ! class_exists( 'WP_Referral_Link_Maker_AI_Engine' ) ) {
+            require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'includes/class-ai-engine.php';
+        }
+
+        $ai_engine = new WP_Referral_Link_Maker_AI_Engine();
+
+        if ( ! $ai_engine->is_available() ) {
+            return null;
+        }
+
+        $updated_content = $ai_engine->insert_referral_links( $content, $referral_links );
+        
+        // Check if AI Engine returned an error
+        if ( is_wp_error( $updated_content ) ) {
+            return null;
+        }
+
+        return $updated_content;
     }
 
     /**

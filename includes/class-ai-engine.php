@@ -93,6 +93,10 @@ class WP_Referral_Link_Maker_AI_Engine {
      * @return string AI prompt.
      */
     private function build_ai_prompt( $content, $links_info ) {
+        // Get link attributes from settings
+        $settings = get_option( 'wp_referral_link_maker_settings', array() );
+        $link_rel = ! empty( $settings['link_rel_attribute'] ) ? $settings['link_rel_attribute'] : 'nofollow';
+        
         $links_description = '';
         foreach ( $links_info as $link ) {
             $links_description .= sprintf(
@@ -114,7 +118,7 @@ class WP_Referral_Link_Maker_AI_Engine {
         $prompt .= "3. Insert links only where they are contextually relevant\n";
         $prompt .= "4. Do not force links where they don't fit naturally\n";
         $prompt .= "5. Respect the maximum insertion count for each keyword\n";
-        $prompt .= "6. Use HTML anchor tags with rel=\"nofollow\" attribute\n";
+        $prompt .= sprintf( "6. Use HTML anchor tags with rel=\"%s\" attribute\n", esc_attr( $link_rel ) );
         $prompt .= "7. Return ONLY the modified HTML content, no explanations\n";
         $prompt .= "8. Preserve all existing HTML formatting and structure\n\n";
         $prompt .= "REFERRAL LINKS TO INSERT:\n";
@@ -138,8 +142,9 @@ class WP_Referral_Link_Maker_AI_Engine {
         // Trim any extra whitespace or formatting
         $response = trim( $response );
 
-        // If response is empty or too short, return original
-        if ( empty( $response ) || strlen( $response ) < 50 ) {
+        // If response is empty or significantly shorter than original, return original
+        $min_length = intval( strlen( $original ) * 0.5 ); // Response should be at least 50% of original
+        if ( empty( $response ) || strlen( $response ) < $min_length ) {
             return $original;
         }
 
