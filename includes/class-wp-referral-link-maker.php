@@ -40,6 +40,7 @@ class WP_Referral_Link_Maker {
         $this->load_dependencies();
         $this->define_admin_hooks();
         $this->define_post_type_hooks();
+        $this->define_meta_box_hooks();
         $this->define_cron_hooks();
     }
 
@@ -50,6 +51,7 @@ class WP_Referral_Link_Maker {
         require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'includes/class-loader.php';
         require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'includes/class-post-types.php';
         require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'includes/class-cron.php';
+        require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'includes/class-meta-boxes.php';
         require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'admin/class-admin.php';
 
         $this->loader = new WP_Referral_Link_Maker_Loader();
@@ -74,6 +76,13 @@ class WP_Referral_Link_Maker {
         $post_types = new WP_Referral_Link_Maker_Post_Types();
 
         $this->loader->add_action( 'init', $post_types, 'register_post_types' );
+    }
+
+    /**
+     * Register all of the hooks related to meta boxes.
+     */
+    private function define_meta_box_hooks() {
+        new WP_Referral_Link_Maker_Meta_Boxes();
     }
 
     /**
