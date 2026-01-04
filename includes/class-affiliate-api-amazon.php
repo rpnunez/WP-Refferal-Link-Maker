@@ -158,7 +158,7 @@ class WP_Referral_Link_Maker_Affiliate_API_Amazon extends WP_Referral_Link_Maker
                 'keyword'     => $title,
                 'url'         => $url,
                 'external_id' => $asin,
-                'description' => sprintf( 'Amazon product: %s (ASIN: %s)', $title, $asin ),
+                'description' => sprintf( __( 'Amazon product: %s (ASIN: %s)', 'wp-referral-link-maker' ), $title, $asin ),
                 'priority'    => 10,
                 'max_insertions' => 2,
             );
@@ -169,6 +169,10 @@ class WP_Referral_Link_Maker_Affiliate_API_Amazon extends WP_Referral_Link_Maker
 
     /**
      * Generate request headers for Amazon PA API 5.0
+     *
+     * Note: This is a simplified implementation for demonstration purposes.
+     * For production use, you must implement full AWS Signature Version 4.
+     * See: https://docs.aws.amazon.com/general/latest/gr/signature-version-4.html
      *
      * @param string $endpoint Request endpoint.
      * @param array  $payload Request payload.
@@ -182,8 +186,8 @@ class WP_Referral_Link_Maker_Affiliate_API_Amazon extends WP_Referral_Link_Maker
         $timestamp = gmdate( 'Ymd\THis\Z' );
         $date = gmdate( 'Ymd' );
 
-        // For simplicity, we're using basic authentication
-        // In production, implement AWS Signature Version 4
+        // Note: This is a simplified header structure
+        // Production code requires full AWS Signature Version 4 implementation
         return array(
             'Content-Type'   => 'application/json',
             'X-Amz-Target'   => 'com.amazon.paapi5.v1.ProductAdvertisingAPIv1.SearchItems',
@@ -196,6 +200,15 @@ class WP_Referral_Link_Maker_Affiliate_API_Amazon extends WP_Referral_Link_Maker
     /**
      * Generate AWS Signature Version 4
      *
+     * Note: This is a simplified placeholder implementation.
+     * For production use, you must implement the complete AWS Signature Version 4 algorithm:
+     * 1. Create a canonical request
+     * 2. Create a string to sign
+     * 3. Calculate the signature
+     * 4. Add the signature to the HTTP request
+     *
+     * See: https://docs.aws.amazon.com/general/latest/gr/signature-version-4.html
+     *
      * @param string $endpoint Request endpoint.
      * @param array  $payload Request payload.
      * @param string $timestamp Request timestamp.
@@ -204,13 +217,12 @@ class WP_Referral_Link_Maker_Affiliate_API_Amazon extends WP_Referral_Link_Maker
      * @return string Authorization header value.
      */
     private function generate_aws_signature( $endpoint, $payload, $timestamp, $date, $region ) {
-        // This is a simplified implementation
-        // For production use, implement full AWS Signature Version 4
-        // See: https://docs.aws.amazon.com/general/latest/gr/signature-version-4.html
-        
         $access_key = $this->credentials['access_key'];
         $secret_key = $this->credentials['secret_key'];
 
+        // IMPORTANT: This is incomplete and will not work with Amazon PA API
+        // You must implement the full AWS Signature Version 4 algorithm
+        // Consider using an existing AWS SDK library for production use
         return sprintf(
             'AWS4-HMAC-SHA256 Credential=%s/%s/%s/ProductAdvertisingAPI/aws4_request',
             $access_key,

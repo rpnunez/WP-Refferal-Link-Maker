@@ -118,8 +118,13 @@ class WP_Referral_Link_Maker_Affiliate_API_ShareASale extends WP_Referral_Link_M
             return $merchants_result;
         }
 
+        if ( empty( $merchants_result ) || ! is_array( $merchants_result ) ) {
+            return new WP_Error( 'no_merchants', __( 'No active merchants found.', 'wp-referral-link-maker' ) );
+        }
+
         $all_links = array();
-        $links_per_merchant = max( 1, intval( $limit / count( $merchants_result ) ) );
+        $merchant_count = count( $merchants_result );
+        $links_per_merchant = max( 1, intval( $limit / $merchant_count ) );
 
         // Fetch links from each merchant
         foreach ( $merchants_result as $merchant ) {
@@ -174,7 +179,7 @@ class WP_Referral_Link_Maker_Affiliate_API_ShareASale extends WP_Referral_Link_M
                 'keyword'     => $title,
                 'url'         => $url,
                 'external_id' => $link_id,
-                'description' => isset( $item['description'] ) ? $item['description'] : sprintf( 'ShareASale link: %s', $title ),
+                'description' => isset( $item['description'] ) ? $item['description'] : sprintf( __( 'ShareASale link: %s', 'wp-referral-link-maker' ), $title ),
                 'priority'    => 10,
                 'max_insertions' => 2,
             );

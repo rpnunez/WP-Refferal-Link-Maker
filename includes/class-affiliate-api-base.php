@@ -137,6 +137,8 @@ abstract class WP_Referral_Link_Maker_Affiliate_API_Base {
     protected function link_exists( $url ) {
         global $wpdb;
         
+        // Note: $wpdb->postmeta is a WordPress core property containing the sanitized table name
+        // and is safe to use in queries. The user input ($url) is properly prepared.
         $existing = $wpdb->get_var(
             $wpdb->prepare(
                 "SELECT post_id FROM {$wpdb->postmeta} 
