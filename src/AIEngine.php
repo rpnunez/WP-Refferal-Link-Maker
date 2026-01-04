@@ -48,7 +48,7 @@ class AIEngine {
      */
     public function insert_referral_links( $content, $referral_links ) {
         if ( ! $this->is_available() ) {
-            return new WP_Error( 'ai_engine_unavailable', __( 'AI Engine plugin is not available.', 'wp-referral-link-maker' ) );
+            return new \WP_Error( 'ai_engine_unavailable', __( 'AI Engine plugin is not available.', 'wp-referral-link-maker' ) );
         }
 
         if ( empty( $referral_links ) ) {
@@ -143,11 +143,11 @@ class AIEngine {
                 $response = $reply->result;
             } else {
                 // Fallback (though unlikely if checked is_available)
-                return new WP_Error( 'ai_engine_class_missing', 'Meow_MWAI_Query_Text class missing' );
+                return new \WP_Error( 'ai_engine_class_missing', 'Meow_MWAI_Query_Text class missing' );
             }
 
             if ( empty( $response ) ) {
-                return new WP_Error( 'ai_engine_empty_response', __( 'AI Engine returned an empty response.', 'wp-referral-link-maker' ) );
+                return new \WP_Error( 'ai_engine_empty_response', __( 'AI Engine returned an empty response.', 'wp-referral-link-maker' ) );
             }
 
             // Validate and extract
@@ -159,8 +159,8 @@ class AIEngine {
 
             return $this->sanitize_ai_response( $modified_content );
 
-        } catch ( Exception $e ) {
-            return new WP_Error( 'ai_engine_error', $e->getMessage() );
+        } catch ( \Exception $e ) {
+            return new \WP_Error( 'ai_engine_error', $e->getMessage() );
         }
     }
 
@@ -297,15 +297,15 @@ class AIEngine {
         $response = preg_replace( '/^```html\s*|\s*```$/', '', $response );
 
         if ( empty( $response ) ) {
-            return new WP_Error( 'ai_engine_empty', 'Empty response' );
+            return new \WP_Error( 'ai_engine_empty', 'Empty response' );
         }
 
         // Basic safety check: length shouldn't vary wildly for a simple link insertion task
         // But chunking makes this check safer as we compare smaller bits
-        $len_ratio = strlen( strip_tags($response) ) / ( strlen( strip_tags($original) ) + 1 );
+        $len_ratio = strlen( strip_tags( $response ) ) / ( strlen( strip_tags( $original ) ) + 1 );
         
-        if ( $len_ratio < 0.5 ) {
-             return new WP_Error( 'ai_engine_short', 'Response too short compared to original' );
+        if ( $len_ratio < self::MIN_RESPONSE_LENGTH_RATIO ) {
+            return new \WP_Error( 'ai_engine_short', 'Response too short compared to original' );
         }
 
         return $response;
