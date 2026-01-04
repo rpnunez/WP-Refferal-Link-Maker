@@ -82,12 +82,17 @@ class WP_Referral_Link_Maker_Analytics {
     /**
      * Get user IP address.
      *
+     * Note: HTTP headers like X-Forwarded-For can be spoofed by clients.
+     * This method validates the IP format but cannot guarantee authenticity.
+     * For critical applications, consider only using REMOTE_ADDR.
+     *
      * @return string User IP address.
      */
     private function get_user_ip() {
         $ip = '';
 
         // Check for IP from reverse proxy headers
+        // Note: These headers can be spoofed, but we validate the format
         if ( ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
             // HTTP_X_FORWARDED_FOR can contain multiple IPs, get the first one
             $ip_list = explode( ',', $_SERVER['HTTP_X_FORWARDED_FOR'] );
@@ -95,10 +100,11 @@ class WP_Referral_Link_Maker_Analytics {
         } elseif ( ! empty( $_SERVER['HTTP_CLIENT_IP'] ) ) {
             $ip = $_SERVER['HTTP_CLIENT_IP'];
         } elseif ( ! empty( $_SERVER['REMOTE_ADDR'] ) ) {
+            // REMOTE_ADDR is the most trustworthy as it's set by the server
             $ip = $_SERVER['REMOTE_ADDR'];
         }
 
-        // Validate IP address format
+        // Sanitize and validate IP address format
         $ip = sanitize_text_field( $ip );
         
         // Validate as IPv4 or IPv6
@@ -116,7 +122,15 @@ class WP_Referral_Link_Maker_Analytics {
      * @return string User agent string.
      */
     private function get_user_agent() {
-        return isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( $_SERVER['HTTP_USER_AGENT'] ) : '';
+        if ( ! isset( $_SERVER['HTTP_USER_AGENT'] ) ) {
+            return '';
+        }
+        
+        // Use wp_kses to strip potentially harmful tags while preserving the full string
+        $user_agent = wp_kses( $_SERVER['HTTP_USER_AGENT'], array() );
+        
+        // Limit length to prevent extremely long strings
+        return substr( $user_agent, 0, 500 );
     }
 
     /**
