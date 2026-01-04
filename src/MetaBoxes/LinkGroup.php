@@ -13,22 +13,22 @@ namespace NunezReferralEngine\MetaBoxes;
 class LinkGroup {
 
     /**
-     * Initialize meta boxes.
+     * Register meta box hooks.
      */
-    public function __construct() {
-        add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ) );
-        add_action( 'save_post', array( $this, 'save_meta_boxes' ), 10, 2 );
+    public static function register() {
+        add_action( 'add_meta_boxes', array( __CLASS__, 'add_meta_boxes' ) );
+        add_action( 'save_post', array( __CLASS__, 'save_meta_boxes' ), 10, 2 );
     }
 
     /**
      * Add meta boxes.
      */
-    public function add_meta_boxes() {
+    public static function add_meta_boxes() {
         // Meta box for Referral Link Group
         add_meta_box(
             'wp_rlm_group_settings',
             __( 'Group Settings', 'wp-referral-link-maker' ),
-            array( $this, 'render_group_settings_meta_box' ),
+            array( __CLASS__, 'render_group_settings_meta_box' ),
             'ref_link_group',
             'normal',
             'high'
@@ -40,7 +40,7 @@ class LinkGroup {
      *
      * @param WP_Post $post Current post object.
      */
-    public function render_group_settings_meta_box( $post ) {
+    public static function render_group_settings_meta_box( $post ) {
         // Add nonce for security
         wp_nonce_field( 'wp_rlm_group_settings_nonce', 'wp_rlm_group_settings_nonce' );
 
@@ -71,7 +71,7 @@ class LinkGroup {
      * @param int     $post_id Post ID.
      * @param WP_Post $post    Post object.
      */
-    public function save_meta_boxes( $post_id, $post ) {
+    public static function save_meta_boxes( $post_id, $post ) {
         // Check if this is an autosave
         if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
             return;
@@ -84,7 +84,7 @@ class LinkGroup {
 
         // Save Referral Link Group meta
         if ( $post->post_type === 'ref_link_group' ) {
-            $this->save_group_settings( $post_id );
+            self::save_group_settings( $post_id );
         }
     }
 
@@ -93,7 +93,7 @@ class LinkGroup {
      *
      * @param int $post_id Post ID.
      */
-    private function save_group_settings( $post_id ) {
+    private static function save_group_settings( $post_id ) {
         // Verify nonce
         if ( ! isset( $_POST['wp_rlm_group_settings_nonce'] ) || ! wp_verify_nonce( $_POST['wp_rlm_group_settings_nonce'], 'wp_rlm_group_settings_nonce' ) ) {
             return;

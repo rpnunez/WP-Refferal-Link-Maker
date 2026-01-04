@@ -38,8 +38,8 @@ class Plugin {
         $this->plugin_name = 'wp-referral-link-maker';
 
         $this->define_admin_hooks();
-        $this->define_post_type_hooks();
-        $this->define_meta_box_hooks();
+        $this->register_post_types();
+        $this->register_meta_boxes();
         $this->define_cron_hooks();
     }
 
@@ -60,7 +60,7 @@ class Plugin {
     /**
      * Register all of the hooks related to custom post types.
      */
-    private function define_post_type_hooks() {
+    private function register_post_types() {
         add_action( 'init', array( 'NunezReferralEngine\PostTypes\LinkGroup', 'register' ) );
         add_action( 'init', array( 'NunezReferralEngine\PostTypes\LinkMaker', 'register' ) );
     }
@@ -68,9 +68,9 @@ class Plugin {
     /**
      * Register all of the hooks related to meta boxes.
      */
-    private function define_meta_box_hooks() {
-        new LinkGroupMetaBoxes();
-        new LinkMakerMetaBoxes();
+    private function register_meta_boxes() {
+        add_action( 'init', array( 'NunezReferralEngine\MetaBoxes\LinkGroup', 'register' ) );
+        add_action( 'init', array( 'NunezReferralEngine\MetaBoxes\LinkMaker', 'register' ) );
     }
 
     /**
