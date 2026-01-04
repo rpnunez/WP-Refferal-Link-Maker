@@ -32,6 +32,10 @@ class WP_Referral_Link_Maker_Admin {
     public function __construct( $plugin_name, $version ) {
         $this->plugin_name = $plugin_name;
         $this->version = $version;
+
+        // Add custom columns for referral links
+        add_filter( 'manage_ref_link_maker_posts_columns', array( $this, 'add_custom_columns' ) );
+        add_action( 'manage_ref_link_maker_posts_custom_column', array( $this, 'display_custom_columns' ), 10, 2 );
     }
 
     /**
@@ -481,5 +485,50 @@ class WP_Referral_Link_Maker_Admin {
             'referral_links'  => isset( $referral_links->publish ) ? $referral_links->publish : 0,
             'processed_posts' => intval( $processed_posts ),
         );
+    }
+
+    /**
+     * Add custom columns to referral links list.
+     *
+     * @param array $columns Existing columns.
+     * @return array Modified columns.
+     */
+    public function add_custom_columns( $columns ) {
+        $new_columns = array();
+        
+        foreach ( $columns as $key => $value ) {
+            $new_columns[ $key ] = $value;
+            
+            // Add source column after title
+            if ( $key === 'title' ) {
+                $new_columns['source'] = __( 'Source', 'wp-referral-link-maker' );
+            }
+        }
+        
+        return $new_columns;
+    }
+
+    /**
+     * Display custom columns content.
+     *
+     * @param string $column  Column name.
+     * @param int    $post_id Post ID.
+     */
+    public function display_custom_columns( $column, $post_id ) {
+        if ( $column === 'source' ) {
+            $source = get_post_meta( $post_id, '_ref_link_source', true );
+            
+            if ( empty( $source ) ) {
+                echo '<span style="color: #888;">' . esc_html__( 'Manual', 'wp-referral-link-maker' ) . '</span>';
+            } else {
+                $source_names = array(
+                    'amazon'     => __( 'Amazon', 'wp-referral-link-maker' ),
+                    'shareasale' => __( 'ShareASale', 'wp-referral-link-maker' ),
+                );
+                
+                $source_label = isset( $source_names[ $source ] ) ? $source_names[ $source ] : ucfirst( $source );
+                echo '<span style="color: #2271b1; font-weight: 600;">' . esc_html( $source_label ) . '</span>';
+            }
+        }
     }
 }
