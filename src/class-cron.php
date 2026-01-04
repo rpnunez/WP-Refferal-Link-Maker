@@ -2,16 +2,17 @@
 /**
  * Cron job handling
  *
- * @package    WP_Referral_Link_Maker
- * @subpackage WP_Referral_Link_Maker/includes
+ * @package    NunezReferralEngine
  */
+
+namespace NunezReferralEngine;
 
 /**
  * Handle cron jobs for automated processing.
  *
  * This class defines cron schedules and processes posts with AI automation.
  */
-class WP_Referral_Link_Maker_Cron {
+class Cron {
 
     /**
      * Add custom cron intervals.
@@ -155,12 +156,7 @@ class WP_Referral_Link_Maker_Cron {
      * @return string|null Processed content or null if AI processing failed.
      */
     private function get_ai_processed_content( $content, $referral_links, $post_id = 0 ) {
-        // Check if AI Engine class is already loaded
-        if ( ! class_exists( 'WP_Referral_Link_Maker_AI_Engine' ) ) {
-            require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'includes/class-ai-engine.php';
-        }
-
-        $ai_engine = new WP_Referral_Link_Maker_AI_Engine();
+        $ai_engine = new AIEngine();
 
         if ( ! $ai_engine->is_available() ) {
             // Log that AI Engine is not available

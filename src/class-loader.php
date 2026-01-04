@@ -2,9 +2,10 @@
 /**
  * Register all actions and filters for the plugin
  *
- * @package    WP_Referral_Link_Maker
- * @subpackage WP_Referral_Link_Maker/includes
+ * @package    NunezReferralEngine
  */
+
+namespace NunezReferralEngine;
 
 /**
  * Register all actions and filters for the plugin.
@@ -12,7 +13,7 @@
  * Maintain a list of all hooks that are registered throughout
  * the plugin, and register them with the WordPress API.
  */
-class WP_Referral_Link_Maker_Loader {
+class Loader {
 
     /**
      * The array of actions registered with WordPress.

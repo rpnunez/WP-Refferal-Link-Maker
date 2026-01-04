@@ -2,9 +2,10 @@
 /**
  * The core plugin class
  *
- * @package    WP_Referral_Link_Maker
- * @subpackage WP_Referral_Link_Maker/includes
+ * @package    NunezReferralEngine
  */
+
+namespace NunezReferralEngine;
 
 /**
  * The core plugin class.
@@ -12,7 +13,7 @@
  * This is used to define internationalization, admin-specific hooks, and
  * public-facing site hooks.
  */
-class WP_Referral_Link_Maker {
+class Plugin {
 
     /**
      * The loader that's responsible for maintaining and registering all hooks that power
@@ -48,20 +49,14 @@ class WP_Referral_Link_Maker {
      * Load the required dependencies for this plugin.
      */
     private function load_dependencies() {
-        require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'includes/class-loader.php';
-        require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'includes/class-post-types.php';
-        require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'includes/class-cron.php';
-        require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'includes/class-meta-boxes.php';
-        require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'admin/class-admin.php';
-
-        $this->loader = new WP_Referral_Link_Maker_Loader();
+        $this->loader = new Loader();
     }
 
     /**
      * Register all of the hooks related to the admin area functionality.
      */
     private function define_admin_hooks() {
-        $plugin_admin = new WP_Referral_Link_Maker_Admin( $this->get_plugin_name(), $this->get_version() );
+        $plugin_admin = new Admin( $this->get_plugin_name(), $this->get_version() );
 
         $this->loader->add_action( 'admin_menu', $plugin_admin, 'add_admin_menu' );
         $this->loader->add_action( 'admin_init', $plugin_admin, 'register_settings' );
@@ -73,7 +68,7 @@ class WP_Referral_Link_Maker {
      * Register all of the hooks related to custom post types.
      */
     private function define_post_type_hooks() {
-        $post_types = new WP_Referral_Link_Maker_Post_Types();
+        $post_types = new PostTypes();
 
         $this->loader->add_action( 'init', $post_types, 'register_post_types' );
     }
@@ -82,14 +77,14 @@ class WP_Referral_Link_Maker {
      * Register all of the hooks related to meta boxes.
      */
     private function define_meta_box_hooks() {
-        new WP_Referral_Link_Maker_Meta_Boxes();
+        new MetaBoxes();
     }
 
     /**
      * Register all of the hooks related to cron jobs.
      */
     private function define_cron_hooks() {
-        $cron = new WP_Referral_Link_Maker_Cron();
+        $cron = new Cron();
 
         $this->loader->add_action( 'wp_referral_link_maker_process_posts', $cron, 'process_posts' );
         $this->loader->add_filter( 'cron_schedules', $cron, 'add_custom_cron_intervals' );

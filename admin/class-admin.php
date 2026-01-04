@@ -2,16 +2,17 @@
 /**
  * The admin-specific functionality of the plugin
  *
- * @package    WP_Referral_Link_Maker
- * @subpackage WP_Referral_Link_Maker/admin
+ * @package    NunezReferralEngine
  */
+
+namespace NunezReferralEngine;
 
 /**
  * The admin-specific functionality of the plugin.
  *
  * Defines the plugin name, version, and hooks for admin area.
  */
-class WP_Referral_Link_Maker_Admin {
+class Admin {
 
     /**
      * The ID of this plugin.

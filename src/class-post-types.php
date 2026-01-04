@@ -2,9 +2,10 @@
 /**
  * Register custom post types
  *
- * @package    WP_Referral_Link_Maker
- * @subpackage WP_Referral_Link_Maker/includes
+ * @package    NunezReferralEngine
  */
+
+namespace NunezReferralEngine;
 
 /**
  * Register custom post types for the plugin.
@@ -13,7 +14,7 @@
  * - Referral Link Group
  * - Referral Link Maker
  */
-class WP_Referral_Link_Maker_Post_Types {
+class PostTypes {
 
     /**
      * Register custom post types.

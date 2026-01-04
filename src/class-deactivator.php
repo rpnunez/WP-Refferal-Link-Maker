@@ -2,16 +2,17 @@
 /**
  * Fired during plugin deactivation
  *
- * @package    WP_Referral_Link_Maker
- * @subpackage WP_Referral_Link_Maker/includes
+ * @package    NunezReferralEngine
  */
+
+namespace NunezReferralEngine;
 
 /**
  * Fired during plugin deactivation.
  *
  * This class defines all code necessary to run during the plugin's deactivation.
  */
-class WP_Referral_Link_Maker_Deactivator {
+class Deactivator {
 
     /**
      * Deactivate the plugin.

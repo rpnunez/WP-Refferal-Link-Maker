@@ -2,9 +2,10 @@
 /**
  * AI Engine Integration
  *
- * @package    WP_Referral_Link_Maker
- * @subpackage WP_Referral_Link_Maker/includes
+ * @package    NunezReferralEngine
  */
+
+namespace NunezReferralEngine;
 
 /**
  * Handle integration with Meow Apps AI Engine plugin.
@@ -12,7 +13,7 @@
  * This class provides methods to interact with the AI Engine plugin
  * for intelligent referral link insertion.
  */
-class WP_Referral_Link_Maker_AI_Engine {
+class AIEngine {
 
     /**
      * Minimum response length threshold as percentage of original content.
