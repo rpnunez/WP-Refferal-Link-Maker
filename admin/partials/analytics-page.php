@@ -103,6 +103,15 @@ if ( ! defined( 'WPINC' ) ) {
             <input type="hidden" name="page" value="wp-referral-link-maker-analytics" />
             <?php
             $selected_link = isset( $_GET['link_id'] ) ? absint( $_GET['link_id'] ) : 0;
+            
+            // Validate that the selected link exists and is a referral link
+            if ( $selected_link > 0 ) {
+                $link_post = get_post( $selected_link );
+                if ( ! $link_post || $link_post->post_type !== 'ref_link_maker' || $link_post->post_status !== 'publish' ) {
+                    $selected_link = 0; // Reset if invalid
+                }
+            }
+            
             $referral_links = get_posts( array(
                 'post_type'      => 'ref_link_maker',
                 'posts_per_page' => -1,

@@ -72,6 +72,10 @@ class WP_Referral_Link_Maker_Analytics {
         $result = $wpdb->insert( $table_name, $data );
 
         if ( false === $result ) {
+            // Log the error for debugging
+            if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+                error_log( sprintf( 'WP Referral Link Maker Analytics: Database insert failed. Error: %s', $wpdb->last_error ) );
+            }
             wp_send_json_error( array( 'message' => 'Failed to track click' ) );
             return;
         }
@@ -144,15 +148,15 @@ class WP_Referral_Link_Maker_Analytics {
 
         $table_name = $wpdb->prefix . 'wp_rlm_analytics';
 
-        $total_clicks = $wpdb->get_var( $wpdb->prepare(
-            "SELECT COUNT(*) FROM $table_name WHERE referral_link_id = %d",
+        // Get aggregate stats and recent clicks in one query for better performance
+        $stats = $wpdb->get_row( $wpdb->prepare(
+            "SELECT 
+                COUNT(*) as total_clicks,
+                COUNT(DISTINCT user_ip) as unique_users
+            FROM $table_name 
+            WHERE referral_link_id = %d",
             $referral_link_id
-        ) );
-
-        $unique_users = $wpdb->get_var( $wpdb->prepare(
-            "SELECT COUNT(DISTINCT user_ip) FROM $table_name WHERE referral_link_id = %d",
-            $referral_link_id
-        ) );
+        ), ARRAY_A );
 
         $recent_clicks = $wpdb->get_results( $wpdb->prepare(
             "SELECT * FROM $table_name WHERE referral_link_id = %d ORDER BY click_time DESC LIMIT 10",
@@ -160,8 +164,8 @@ class WP_Referral_Link_Maker_Analytics {
         ) );
 
         return array(
-            'total_clicks'  => intval( $total_clicks ),
-            'unique_users'  => intval( $unique_users ),
+            'total_clicks'  => intval( $stats['total_clicks'] ),
+            'unique_users'  => intval( $stats['unique_users'] ),
             'recent_clicks' => $recent_clicks,
         );
     }
