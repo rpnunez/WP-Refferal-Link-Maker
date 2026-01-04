@@ -70,7 +70,14 @@ class PromptManager {
      * @return string Escaped content.
      */
     public function escape_prompt_content( $content ) {
-        // Simple escaping to prevent confusion with instructions
-        return str_replace( array( 'INSTRUCTIONS:', 'SYSTEM:', 'USER:' ), '', $content );
+        // More robust escaping to prevent prompt injection with case variations
+        $patterns = array(
+            '/\bINSTRUCTIONS?\s*:/i',
+            '/\bSYSTEM\s*:/i',
+            '/\bUSER\s*:/i',
+            '/\bASSISTANT\s*:/i',
+            '/\bPROMPT\s*:/i',
+        );
+        return preg_replace( $patterns, '', $content );
     }
 }

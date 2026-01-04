@@ -30,6 +30,13 @@ class AIEngine {
     const CHUNK_SIZE = 2000;
 
     /**
+     * Default temperature for AI queries (lower = more precise).
+     *
+     * @var float
+     */
+    const DEFAULT_TEMPERATURE = 0.2;
+
+    /**
      * Prompt manager instance.
      *
      * @var PromptManager
@@ -155,7 +162,7 @@ class AIEngine {
             if ( class_exists( 'Meow_MWAI_Query_Text' ) ) {
                 $query = new \Meow_MWAI_Query_Text( $message );
                 $query->set_instructions( $instructions );
-                $query->set_temperature( 0.2 ); // Smart default: Low temp for precision
+                $query->set_temperature( self::DEFAULT_TEMPERATURE );
 
                 // Run the query
                 $reply = $mwai_core->run_query( $query );
@@ -268,7 +275,7 @@ class AIEngine {
 
         // Basic safety check: length shouldn't vary wildly for a simple link insertion task
         // But chunking makes this check safer as we compare smaller bits
-        $len_ratio = strlen( strip_tags( $response ) ) / ( strlen( strip_tags( $original ) ) + 1 );
+        $len_ratio = strlen( strip_tags( $response ) ) / max( strlen( strip_tags( $original ) ), 1 );
         
         if ( $len_ratio < self::MIN_RESPONSE_LENGTH_RATIO ) {
             return new \WP_Error( 'ai_engine_short', 'Response too short compared to original' );
