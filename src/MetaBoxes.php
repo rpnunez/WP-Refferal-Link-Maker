@@ -2,9 +2,10 @@
 /**
  * Meta boxes for custom post types
  *
- * @package    WP_Referral_Link_Maker
- * @subpackage WP_Referral_Link_Maker/includes
+ * @package    NunezReferralEngine
  */
+
+namespace NunezReferralEngine;
 
 /**
  * Handle meta boxes for custom post types.
@@ -13,7 +14,7 @@
  * - Referral Link Group
  * - Referral Link Maker
  */
-class WP_Referral_Link_Maker_Meta_Boxes {
+class MetaBoxes {
 
     /**
      * Initialize meta boxes.

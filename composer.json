@@ -1,0 +1,20 @@
+{
+    "name": "rpnunez/wp-referral-link-maker",
+    "description": "A WordPress plugin that integrates referral links into existing posts using AI capabilities from Meow Apps AI Engine plugin.",
+    "type": "project",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "rpnunez",
+            "homepage": "https://github.com/rpnunez"
+        }
+    ],
+    "require": {
+        "php": ">=7.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "NunezReferralEngine\\": "src/"
+        }
+    }
+}

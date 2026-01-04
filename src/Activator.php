@@ -2,16 +2,17 @@
 /**
  * Fired during plugin activation
  *
- * @package    WP_Referral_Link_Maker
- * @subpackage WP_Referral_Link_Maker/includes
+ * @package    NunezReferralEngine
  */
+
+namespace NunezReferralEngine;
 
 /**
  * Fired during plugin activation.
  *
  * This class defines all code necessary to run during the plugin's activation.
  */
-class WP_Referral_Link_Maker_Activator {
+class Activator {
 
     /**
      * Activate the plugin.
@@ -36,8 +37,7 @@ class WP_Referral_Link_Maker_Activator {
      * Register custom post types.
      */
     private static function register_custom_post_types() {
-        require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'includes/class-post-types.php';
-        WP_Referral_Link_Maker_Post_Types::register_post_types();
+        PostTypes::register_post_types();
     }
     
     /**

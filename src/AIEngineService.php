@@ -2,9 +2,10 @@
 /**
  * AI Engine Integration
  *
- * @package    WP_Referral_Link_Maker
- * @subpackage WP_Referral_Link_Maker/includes
+ * @package    NunezReferralEngine
  */
+
+namespace NunezReferralEngine;
 
 /**
  * Handle integration with Meow Apps AI Engine plugin.
@@ -12,7 +13,7 @@
  * This class provides methods to interact with the AI Engine plugin
  * for intelligent referral link insertion.
  */
-class WP_Referral_Link_Maker_AI_Engine {
+class AIEngineService {
 
     /**
      * Minimum response length threshold as percentage of original content.
@@ -47,7 +48,7 @@ class WP_Referral_Link_Maker_AI_Engine {
      */
     public function insert_referral_links( $content, $referral_links ) {
         if ( ! $this->is_available() ) {
-            return new WP_Error( 'ai_engine_unavailable', __( 'AI Engine plugin is not available.', 'wp-referral-link-maker' ) );
+            return new \WP_Error( 'ai_engine_unavailable', __( 'AI Engine plugin is not available.', 'wp-referral-link-maker' ) );
         }
 
         if ( empty( $referral_links ) ) {
@@ -131,6 +132,11 @@ class WP_Referral_Link_Maker_AI_Engine {
         try {
             global $mwai_core;
 
+            // Verify $mwai_core is available
+            if ( ! isset( $mwai_core ) || ! is_object( $mwai_core ) ) {
+                return new \WP_Error( 'ai_engine_core_missing', 'AI Engine core is not available' );
+            }
+
             // Use Meow_MWAI_Query_Text for better control
             if ( class_exists( 'Meow_MWAI_Query_Text' ) ) {
                 $query = new Meow_MWAI_Query_Text( $message );
@@ -139,14 +145,20 @@ class WP_Referral_Link_Maker_AI_Engine {
 
                 // Run the query
                 $reply = $mwai_core->run_query( $query );
+                
+                // Verify reply is valid
+                if ( ! is_object( $reply ) || ! property_exists( $reply, 'result' ) ) {
+                    return new \WP_Error( 'ai_engine_invalid_reply', 'AI Engine returned an invalid reply' );
+                }
+                
                 $response = $reply->result;
             } else {
                 // Fallback (though unlikely if checked is_available)
-                return new WP_Error( 'ai_engine_class_missing', 'Meow_MWAI_Query_Text class missing' );
+                return new \WP_Error( 'ai_engine_class_missing', 'Meow_MWAI_Query_Text class missing' );
             }
 
             if ( empty( $response ) ) {
-                return new WP_Error( 'ai_engine_empty_response', __( 'AI Engine returned an empty response.', 'wp-referral-link-maker' ) );
+                return new \WP_Error( 'ai_engine_empty_response', __( 'AI Engine returned an empty response.', 'wp-referral-link-maker' ) );
             }
 
             // Validate and extract
@@ -158,8 +170,8 @@ class WP_Referral_Link_Maker_AI_Engine {
 
             return $this->sanitize_ai_response( $modified_content );
 
-        } catch ( Exception $e ) {
-            return new WP_Error( 'ai_engine_error', $e->getMessage() );
+        } catch ( \Exception $e ) {
+            return new \WP_Error( 'ai_engine_error', $e->getMessage() );
         }
     }
 
@@ -296,15 +308,15 @@ class WP_Referral_Link_Maker_AI_Engine {
         $response = preg_replace( '/^```html\s*|\s*```$/', '', $response );
 
         if ( empty( $response ) ) {
-            return new WP_Error( 'ai_engine_empty', 'Empty response' );
+            return new \WP_Error( 'ai_engine_empty', 'Empty response' );
         }
 
         // Basic safety check: length shouldn't vary wildly for a simple link insertion task
         // But chunking makes this check safer as we compare smaller bits
-        $len_ratio = strlen( strip_tags($response) ) / ( strlen( strip_tags($original) ) + 1 );
+        $len_ratio = strlen( strip_tags( $response ) ) / ( strlen( strip_tags( $original ) ) + 1 );
         
-        if ( $len_ratio < 0.5 ) {
-             return new WP_Error( 'ai_engine_short', 'Response too short compared to original' );
+        if ( $len_ratio < self::MIN_RESPONSE_LENGTH_RATIO ) {
+            return new \WP_Error( 'ai_engine_short', 'Response too short compared to original' );
         }
 
         return $response;

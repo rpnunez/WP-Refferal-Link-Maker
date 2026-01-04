@@ -57,6 +57,8 @@ Organize your referral links with groups that include:
 2. Activate the plugin through the 'Plugins' menu in WordPress
 3. Navigate to 'Referral Links' in the admin menu to configure the plugin
 
+**Note**: The plugin is distributed with the Composer autoloader and all dependencies in the `vendor/` directory.
+
 ## Configuration
 
 ### Initial Setup
@@ -111,7 +113,8 @@ This plugin is designed to work with the [Meow Apps AI Engine](https://wordpress
 ### Requirements
 
 - WordPress 5.0 or higher
-- PHP 7.2 or higher
+- PHP 7.4 or higher
+- Composer (for development and autoloading)
 - AI Engine plugin (optional, for AI features)
 
 ### How It Works
@@ -158,7 +161,6 @@ The plugin follows WordPress security best practices:
 ```
 wp-referral-link-maker/
 ├── admin/
-│   ├── class-admin.php           # Admin functionality
 │   ├── css/
 │   │   └── admin.css             # Admin styles
 │   ├── js/
@@ -166,17 +168,30 @@ wp-referral-link-maker/
 │   └── partials/
 │       ├── overview-page.php     # Overview page template
 │       └── settings-page.php     # Settings page template
-├── includes/
-│   ├── class-activator.php       # Plugin activation
-│   ├── class-deactivator.php     # Plugin deactivation
-│   ├── class-loader.php          # Hook loader
-│   ├── class-wp-referral-link-maker.php  # Core plugin class
-│   ├── class-post-types.php      # Custom post types
-│   ├── class-meta-boxes.php      # Meta box handlers
-│   └── class-cron.php            # Cron job handlers
+├── src/                           # PSR-4 autoloaded classes (NunezReferralEngine namespace)
+│   ├── Plugin.php                # Core plugin class
+│   ├── Activator.php             # Plugin activation
+│   ├── Deactivator.php           # Plugin deactivation
+│   ├── PostTypes.php             # Custom post types
+│   ├── MetaBoxes.php             # Meta box handlers
+│   ├── Cron.php                  # Cron job handlers
+│   ├── AIEngineService.php       # AI Engine integration
+│   ├── Admin.php                 # Admin overview functionality
+│   └── Settings.php              # Settings page functionality
+├── vendor/                        # Composer autoloader (generated)
+├── composer.json                  # Composer configuration
 ├── languages/                     # Translation files
 ├── wp-referral-link-maker.php    # Main plugin file
 └── README.md                      # This file
+```
+
+### PSR-4 Autoloading
+
+The plugin uses Composer for PSR-4 autoloading with the namespace `NunezReferralEngine`. All classes are located in the `src/` directory and follow PSR-4 naming conventions.
+
+To regenerate the autoloader after changes:
+```bash
+composer dump-autoload
 ```
 
 ### Hooks and Filters
@@ -210,6 +225,40 @@ Developed by rpnunez
 Designed to integrate with Meow Apps AI Engine
 
 ## Changelog
+
+### 1.0.1
+- **Code Architecture Refactoring**
+  - Migrated to PSR-4 autoloading with `NunezReferralEngine` namespace
+  - Renamed folder structure: `includes/` → `src/`
+  - Removed `WP_Referral_Link_Maker_` class name prefix
+  - Renamed all class files to follow PSR-4 conventions (e.g., `Plugin.php`, `Admin.php`)
+  - Added Composer with autoloader configuration
+  
+- **Constants Refactoring**
+  - Renamed constants: `WP_REFERRAL_LINK_MAKER_*` → `NRE_*`
+  - Updated: `NRE_VERSION`, `NRE_PLUGIN_DIR`, `NRE_PLUGIN_URL`
+  
+- **Code Organization**
+  - Extracted Settings functionality into separate `Settings.php` class
+  - Removed Loader abstraction class in favor of native WordPress hooks API
+  - Direct use of `add_action()` and `add_filter()` throughout
+  
+- **Class Renames**
+  - `WP_Referral_Link_Maker` → `Plugin`
+  - `WP_Referral_Link_Maker_AI_Engine` → `AIEngineService`
+  - `WP_Referral_Link_Maker_Admin` → `Admin`
+  - All other classes simplified with namespace
+  
+- **Code Quality Improvements**
+  - Added fully qualified class names for global namespace classes
+  - Added safety checks for autoloader and AI Engine responses
+  - Improved error messages for plugin dependencies
+  - Maintained `WP_Query` usage for consistency
+  
+- **Documentation**
+  - Updated README with new PSR-4 structure
+  - Simplified installation instructions (plugin distributed with vendor directory)
+  - Updated file structure documentation
 
 ### 1.0.0
 - Initial release
