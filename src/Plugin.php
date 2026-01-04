@@ -38,7 +38,7 @@ class Plugin {
         $this->version = WP_REFERRAL_LINK_MAKER_VERSION;
         $this->plugin_name = 'wp-referral-link-maker';
 
-        $this->load_dependencies();
+        $this->initialize();
         $this->define_admin_hooks();
         $this->define_post_type_hooks();
         $this->define_meta_box_hooks();
@@ -48,7 +48,7 @@ class Plugin {
     /**
      * Load the required dependencies for this plugin.
      */
-    private function load_dependencies() {
+    private function initialize() {
         $this->loader = new Loader();
     }
 

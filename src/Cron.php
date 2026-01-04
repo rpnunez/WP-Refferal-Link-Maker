@@ -100,7 +100,8 @@ class Cron {
             )
         );
 
-        return get_posts( $args );
+        $query = new WP_Query( $args );
+        return $query->posts;
     }
 
     /**
@@ -198,7 +199,8 @@ class Cron {
             'posts_per_page' => -1,
         );
 
-        return get_posts( $args );
+        $query = new WP_Query( $args );
+        return $query->posts;
     }
 
     /**
