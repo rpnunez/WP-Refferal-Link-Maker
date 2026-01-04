@@ -29,7 +29,15 @@ define( 'WP_REFERRAL_LINK_MAKER_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 /**
  * Require Composer autoloader.
  */
-require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'vendor/autoload.php';
+$autoload_file = WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'vendor/autoload.php';
+if ( ! file_exists( $autoload_file ) ) {
+    wp_die(
+        esc_html__( 'WP Referral Link Maker: Composer autoloader not found. Please run "composer install" in the plugin directory.', 'wp-referral-link-maker' ),
+        esc_html__( 'Plugin Dependency Error', 'wp-referral-link-maker' ),
+        array( 'back_link' => true )
+    );
+}
+require_once $autoload_file;
 
 use NunezReferralEngine\Plugin;
 use NunezReferralEngine\Activator;

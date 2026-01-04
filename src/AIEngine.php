@@ -132,6 +132,11 @@ class AIEngine {
         try {
             global $mwai_core;
 
+            // Verify $mwai_core is available
+            if ( ! isset( $mwai_core ) || ! is_object( $mwai_core ) ) {
+                return new \WP_Error( 'ai_engine_core_missing', 'AI Engine core is not available' );
+            }
+
             // Use Meow_MWAI_Query_Text for better control
             if ( class_exists( 'Meow_MWAI_Query_Text' ) ) {
                 $query = new Meow_MWAI_Query_Text( $message );
@@ -140,6 +145,12 @@ class AIEngine {
 
                 // Run the query
                 $reply = $mwai_core->run_query( $query );
+                
+                // Verify reply is valid
+                if ( ! is_object( $reply ) || ! property_exists( $reply, 'result' ) ) {
+                    return new \WP_Error( 'ai_engine_invalid_reply', 'AI Engine returned an invalid reply' );
+                }
+                
                 $response = $reply->result;
             } else {
                 // Fallback (though unlikely if checked is_available)
