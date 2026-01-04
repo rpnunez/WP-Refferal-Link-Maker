@@ -3,7 +3,7 @@
  * Plugin Name: WP Referral Link Maker
  * Plugin URI: https://github.com/rpnunez/WP-Refferal-Link-Maker
  * Description: A WordPress plugin that integrates referral links into existing posts using AI capabilities from Meow Apps AI Engine plugin.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: rpnunez
  * Author URI: https://github.com/rpnunez
  * License: GPL-2.0+
@@ -22,7 +22,7 @@ if ( ! defined( 'WPINC' ) ) {
 /**
  * Currently plugin version.
  */
-define( 'NRE_VERSION', '1.0.0' );
+define( 'NRE_VERSION', '1.0.1' );
 define( 'NRE_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'NRE_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 

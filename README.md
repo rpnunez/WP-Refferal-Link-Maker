@@ -226,6 +226,40 @@ Designed to integrate with Meow Apps AI Engine
 
 ## Changelog
 
+### 1.0.1
+- **Code Architecture Refactoring**
+  - Migrated to PSR-4 autoloading with `NunezReferralEngine` namespace
+  - Renamed folder structure: `includes/` → `src/`
+  - Removed `WP_Referral_Link_Maker_` class name prefix
+  - Renamed all class files to follow PSR-4 conventions (e.g., `Plugin.php`, `Admin.php`)
+  - Added Composer with autoloader configuration
+  
+- **Constants Refactoring**
+  - Renamed constants: `WP_REFERRAL_LINK_MAKER_*` → `NRE_*`
+  - Updated: `NRE_VERSION`, `NRE_PLUGIN_DIR`, `NRE_PLUGIN_URL`
+  
+- **Code Organization**
+  - Extracted Settings functionality into separate `Settings.php` class
+  - Removed Loader abstraction class in favor of native WordPress hooks API
+  - Direct use of `add_action()` and `add_filter()` throughout
+  
+- **Class Renames**
+  - `WP_Referral_Link_Maker` → `Plugin`
+  - `WP_Referral_Link_Maker_AI_Engine` → `AIEngineService`
+  - `WP_Referral_Link_Maker_Admin` → `Admin`
+  - All other classes simplified with namespace
+  
+- **Code Quality Improvements**
+  - Added fully qualified class names for global namespace classes
+  - Added safety checks for autoloader and AI Engine responses
+  - Improved error messages for plugin dependencies
+  - Maintained `WP_Query` usage for consistency
+  
+- **Documentation**
+  - Updated README with new PSR-4 structure
+  - Simplified installation instructions (plugin distributed with vendor directory)
+  - Updated file structure documentation
+
 ### 1.0.0
 - Initial release
 - Custom post types for referral links and groups
