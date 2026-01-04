@@ -69,6 +69,7 @@ class WP_Referral_Link_Maker_AI_Engine {
             }
 
             $links_info[] = array(
+                'id' => $link->ID,
                 'keyword' => $keyword,
                 'url' => $url,
                 'context' => $ai_context,
@@ -138,7 +139,8 @@ class WP_Referral_Link_Maker_AI_Engine {
             }
             
             $links_description .= sprintf(
-                "- Keyword: '%s', URL: '%s', Max insertions: %d",
+                "- ID: %d, Keyword: '%s', URL: '%s', Max insertions: %d",
+                $link['id'],
                 $link['keyword'],
                 $url,
                 $link['max_insertions']
@@ -164,8 +166,9 @@ class WP_Referral_Link_Maker_AI_Engine {
             $prompt .= "6. Use HTML anchor tags without rel attribute\n";
         }
         
-        $prompt .= "7. Return ONLY the modified HTML content, no explanations\n";
-        $prompt .= "8. Preserve all existing HTML formatting and structure\n\n";
+        $prompt .= "7. Add data-ref-link-id attribute to each link with the corresponding link ID\n";
+        $prompt .= "8. Return ONLY the modified HTML content, no explanations\n";
+        $prompt .= "9. Preserve all existing HTML formatting and structure\n\n";
         $prompt .= "REFERRAL LINKS TO INSERT:\n";
         $prompt .= $links_description . "\n";
         $prompt .= "ORIGINAL CONTENT:\n";
@@ -212,6 +215,9 @@ class WP_Referral_Link_Maker_AI_Engine {
         // combined values such as "nofollow sponsored" without being stripped
         if ( isset( $allowed_html['a'] ) && is_array( $allowed_html['a'] ) ) {
             $allowed_html['a']['rel'] = true;
+            // Allow data-* attributes for analytics tracking
+            $allowed_html['a']['data-ref-link-id'] = true;
+            $allowed_html['a']['data-post-id'] = true;
         }
 
         // Use wp_kses with the customized allowed HTML to sanitize the content

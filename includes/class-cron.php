@@ -124,7 +124,7 @@ class WP_Referral_Link_Maker_Cron {
         
         // If AI processing failed, use fallback
         if ( is_null( $updated_content ) ) {
-            $updated_content = $this->apply_referral_links( $post->post_content, $referral_links );
+            $updated_content = $this->apply_referral_links( $post->post_content, $referral_links, $post->ID );
         }
 
         // Update post with new content and set to pending
@@ -214,9 +214,10 @@ class WP_Referral_Link_Maker_Cron {
      *
      * @param string $content Original post content.
      * @param array  $links   Array of referral link objects.
+     * @param int    $post_id Post ID for tracking purposes.
      * @return string Modified content with referral links.
      */
-    private function apply_referral_links( $content, $links ) {
+    private function apply_referral_links( $content, $links, $post_id = 0 ) {
         // Ensure $links is iterable before processing to avoid fatal errors
         if ( ! is_array( $links ) ) {
             return $content;
@@ -239,12 +240,22 @@ class WP_Referral_Link_Maker_Cron {
                 continue;
             }
 
-            // Build link HTML with rel attribute if configured
+            // Build link HTML with rel attribute and analytics tracking attributes
+            $link_attrs = array();
+            $link_attrs[] = sprintf( 'href="%s"', esc_url( $url ) );
+            
             if ( ! empty( $link_rel ) ) {
-                $link_html = sprintf( '<a href="%s" rel="%s">%s</a>', esc_url( $url ), esc_attr( $link_rel ), esc_html( $keyword ) );
-            } else {
-                $link_html = sprintf( '<a href="%s">%s</a>', esc_url( $url ), esc_html( $keyword ) );
+                $link_attrs[] = sprintf( 'rel="%s"', esc_attr( $link_rel ) );
             }
+            
+            // Add analytics tracking attributes
+            $link_attrs[] = sprintf( 'data-ref-link-id="%d"', absint( $link->ID ) );
+            
+            if ( $post_id ) {
+                $link_attrs[] = sprintf( 'data-post-id="%d"', absint( $post_id ) );
+            }
+            
+            $link_html = sprintf( '<a %s>%s</a>', implode( ' ', $link_attrs ), esc_html( $keyword ) );
             
             // Replace first occurrence of keyword with link
             $content = preg_replace(
