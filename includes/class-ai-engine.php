@@ -22,13 +22,11 @@ class WP_Referral_Link_Maker_AI_Engine {
     const MIN_RESPONSE_LENGTH_RATIO = 0.5;
 
     /**
-     * Maximum content length for AI processing (characters).
-     * This is a conservative character-based approximation since AI models 
-     * count tokens differently. ~15,000 chars ≈ ~3,750 tokens for most models.
+     * Chunk size for splitting content (characters).
      *
      * @var int
      */
-    const MAX_CONTENT_LENGTH = 15000;
+    const CHUNK_SIZE = 2000;
 
     /**
      * Check if AI Engine plugin is available.
@@ -80,121 +78,194 @@ class WP_Referral_Link_Maker_AI_Engine {
             return $content;
         }
 
-        // Validate content length to prevent token limit issues
-        if ( strlen( $content ) > self::MAX_CONTENT_LENGTH ) {
-            return new WP_Error( 'ai_engine_content_too_long', __( 'Post content exceeds maximum length for AI processing.', 'wp-referral-link-maker' ) );
+        return $this->process_content_in_chunks( $content, $links_info );
+    }
+
+    /**
+     * Process content in chunks to handle long posts and improve reliability.
+     *
+     * @param string $content    Original post content.
+     * @param array  $links_info Array of link information.
+     * @return string|WP_Error Modified content or error.
+     */
+    private function process_content_in_chunks( $content, $links_info ) {
+        // Split content into chunks respecting HTML structure
+        $chunks = $this->split_content_smartly( $content );
+        $modified_chunks = array();
+        $errors = array();
+
+        foreach ( $chunks as $chunk ) {
+            // If chunk is too short or just whitespace, skip processing
+            if ( strlen( trim( $chunk ) ) < 50 ) {
+                $modified_chunks[] = $chunk;
+                continue;
+            }
+
+            // Process the chunk
+            $modified_chunk = $this->process_single_chunk( $chunk, $links_info );
+
+            if ( is_wp_error( $modified_chunk ) ) {
+                // Log error but keep original content to avoid breaking the post
+                $errors[] = $modified_chunk->get_error_message();
+                $modified_chunks[] = $chunk;
+            } else {
+                $modified_chunks[] = $modified_chunk;
+            }
         }
 
-        // Build AI prompt
-        $prompt = $this->build_ai_prompt( $content, $links_info );
+        return implode( '', $modified_chunks );
+    }
 
-        // Query AI Engine
+    /**
+     * Process a single chunk of content using AI.
+     *
+     * @param string $chunk      Content chunk.
+     * @param array  $links_info Link info.
+     * @return string|WP_Error   Modified chunk or error.
+     */
+    private function process_single_chunk( $chunk, $links_info ) {
+        // Build instructions and message
+        $instructions = $this->build_ai_instructions( $links_info );
+        $message = "Here is the content section to process:\n\n" . $this->escape_prompt_content( $chunk );
+
         try {
-            global $mwai;
-            $response = $mwai->simpleTextQuery( $prompt );
+            global $mwai_core;
+
+            // Use Meow_MWAI_Query_Text for better control
+            if ( class_exists( 'Meow_MWAI_Query_Text' ) ) {
+                $query = new Meow_MWAI_Query_Text( $message );
+                $query->set_instructions( $instructions );
+                $query->set_temperature( 0.2 ); // Smart default: Low temp for precision
+
+                // Run the query
+                $reply = $mwai_core->run_query( $query );
+                $response = $reply->result;
+            } else {
+                // Fallback (though unlikely if checked is_available)
+                return new WP_Error( 'ai_engine_class_missing', 'Meow_MWAI_Query_Text class missing' );
+            }
 
             if ( empty( $response ) ) {
                 return new WP_Error( 'ai_engine_empty_response', __( 'AI Engine returned an empty response.', 'wp-referral-link-maker' ) );
             }
 
-            // Validate and extract the modified content from AI response
-            $modified_content = $this->extract_content_from_response( $response, $content );
-            
-            // Check if validation failed
+            // Validate and extract
+            $modified_content = $this->extract_content_from_response( $response, $chunk );
+
             if ( is_wp_error( $modified_content ) ) {
                 return $modified_content;
             }
-            
-            // Sanitize the AI response to prevent XSS attacks
-            $modified_content = $this->sanitize_ai_response( $modified_content );
 
-            return $modified_content;
+            return $this->sanitize_ai_response( $modified_content );
+
         } catch ( Exception $e ) {
-            return new WP_Error( 'ai_engine_error', sprintf( __( 'AI Engine error: %s', 'wp-referral-link-maker' ), $e->getMessage() ) );
+            return new WP_Error( 'ai_engine_error', $e->getMessage() );
         }
     }
 
     /**
-     * Build AI prompt for intelligent link insertion.
+     * Split content into chunks based on paragraphs or newlines.
      *
-     * @param string $content    Original post content.
-     * @param array  $links_info Array of link information.
-     * @return string AI prompt.
+     * @param string $content Full content.
+     * @return array Chunks.
      */
-    private function build_ai_prompt( $content, $links_info ) {
-        // Get link attributes from settings
+    private function split_content_smartly( $content ) {
+        $chunks = array();
+        $current_chunk = '';
+
+        // Split by closing paragraph tag or double newline to preserve block structure
+        // Using a positive lookbehind to keep the delimiter in the previous chunk is tricky with split
+        // So we split and re-append.
+
+        // Regex split: keep delimiters
+        // Split by </p> or \n\n
+        $parts = preg_split( '/(<\/p>|\n\n)/i', $content, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY );
+
+        foreach ( $parts as $part ) {
+            // Append part to current chunk
+            $current_chunk .= $part;
+
+            // If current chunk exceeds size AND we are at a safe boundary (end of p or newline)
+            // The split logic above puts the delimiter as a separate part usually?
+            // Actually, PREG_SPLIT_DELIM_CAPTURE captures the delimiter.
+            // So we might get ["Text...", "</p>", "Next...", "\n\n"]
+
+            // If the part is just a delimiter, strictly speaking we are at a boundary.
+            // But we want to check length accumulated so far.
+
+            if ( strlen( $current_chunk ) >= self::CHUNK_SIZE ) {
+                // Only break if we just added a delimiter to ensure valid HTML fragments
+                if ( preg_match( '/(<\/p>|\n\n)$/i', $current_chunk ) ) {
+                    $chunks[] = $current_chunk;
+                    $current_chunk = '';
+                }
+            }
+        }
+
+        if ( ! empty( $current_chunk ) ) {
+            $chunks[] = $current_chunk;
+        }
+
+        return $chunks;
+    }
+
+    /**
+     * Build AI instructions (System Prompt).
+     *
+     * @param array $links_info Array of link information.
+     * @return string Instructions.
+     */
+    private function build_ai_instructions( $links_info ) {
         $settings = get_option( 'wp_referral_link_maker_settings', array() );
         $link_rel = isset( $settings['link_rel_attribute'] ) ? $settings['link_rel_attribute'] : 'nofollow';
+        $global_context = isset( $settings['global_ai_context'] ) ? $settings['global_ai_context'] : '';
         
-        // Validate and sanitize the rel attribute
+        // Validate rel
         $link_rel = wp_referral_link_maker_sanitize_rel_attribute( $link_rel );
-        
+
         $links_description = '';
         foreach ( $links_info as $link ) {
-            // Validate URL format
-            $url = esc_url_raw( $link['url'] );
-            if ( empty( $url ) || ! filter_var( $url, FILTER_VALIDATE_URL ) ) {
-                continue; // Skip invalid URLs
-            }
-            
             $links_description .= sprintf(
-                "- Keyword: '%s', URL: '%s', Max insertions: %d",
+                "- Keyword: '%s', URL: '%s'",
                 $link['keyword'],
-                $url,
-                $link['max_insertions']
+                esc_url_raw( $link['url'] )
             );
             if ( ! empty( $link['context'] ) ) {
-                $links_description .= sprintf( ", Context: %s", $link['context'] );
+                $links_description .= sprintf( " (Context: %s)", $link['context'] );
             }
             $links_description .= "\n";
         }
 
-        $prompt = "You are a content editor tasked with intelligently inserting referral links into blog post content. Your goal is to add links naturally where they make sense contextually.\n\n";
-        $prompt .= "INSTRUCTIONS:\n";
-        $prompt .= "1. Read the provided content carefully\n";
-        $prompt .= "2. For each keyword provided, find natural places to insert the link\n";
-        $prompt .= "3. Insert links only where they are contextually relevant\n";
-        $prompt .= "4. Do not force links where they don't fit naturally\n";
-        $prompt .= "5. Respect the maximum insertion count for each keyword\n";
-        
-        // Add rel attribute instruction only if configured
-        if ( ! empty( $link_rel ) ) {
-            $prompt .= sprintf( "6. Use HTML anchor tags with rel=\"%s\" attribute\n", esc_attr( $link_rel ) );
-        } else {
-            $prompt .= "6. Use HTML anchor tags without rel attribute\n";
+        $instructions = "You are a specialized content editor for a WordPress blog.\n";
+        if ( ! empty( $global_context ) ) {
+            $instructions .= "BLOG CONTEXT: " . $global_context . "\n";
         }
         
-        $prompt .= "7. Return ONLY the modified HTML content, no explanations\n";
-        $prompt .= "8. Preserve all existing HTML formatting and structure\n\n";
-        $prompt .= "REFERRAL LINKS TO INSERT:\n";
-        $prompt .= $links_description . "\n";
-        $prompt .= "ORIGINAL CONTENT:\n";
-        $prompt .= $this->escape_prompt_content( $content ) . "\n\n";
-        $prompt .= "MODIFIED CONTENT (return only the HTML with links inserted):";
+        $instructions .= "\nTASK: Insert the provided referral links into the text naturally. Do not rewrite the entire text, only modify sentences to insert links where relevant.\n";
+        $instructions .= "RULES:\n";
+        $instructions .= "1. Maintain the original HTML structure exactly.\n";
+        $instructions .= "2. Return ONLY the HTML for the section provided.\n";
+        $instructions .= "3. Do not add markdown code blocks (```html).\n";
+        if ( ! empty( $link_rel ) ) {
+            $instructions .= sprintf( "4. Use <a href='...' rel='%s'>keyword</a>.\n", esc_attr( $link_rel ) );
+        } else {
+            $instructions .= "4. Use standard <a href='...'> tags.\n";
+        }
+        
+        $instructions .= "\nLINKS TO INSERT:\n" . $links_description;
 
-        return $prompt;
+        return $instructions;
     }
 
     /**
      * Escape content for AI prompt to prevent prompt injection.
      *
-     * This method uses word boundaries to avoid false positives while
-     * preventing common prompt injection patterns.
-     *
      * @param string $content Content to escape.
      * @return string Escaped content.
      */
     private function escape_prompt_content( $content ) {
-        // Replace potential prompt injection keywords with placeholders (case-insensitive)
-        // Using word boundaries (\b) to avoid false positives in normal content
-        $replacements = array(
-            '/\bINSTRUCTIONS\s*:/i' => '[INSTRUCTIONS-TEXT]:',
-            '/\bMODIFIED\s+CONTENT\s*:/i' => '[MODIFIED-CONTENT-TEXT]:',
-            '/\bORIGINAL\s+CONTENT\s*:/i' => '[ORIGINAL-CONTENT-TEXT]:',
-            '/\bREFERRAL\s+LINKS\s+TO\s+INSERT\s*:/i' => '[REFERRAL-LINKS-TEXT]:',
-        );
-        
-        return preg_replace( array_keys( $replacements ), array_values( $replacements ), $content );
+        // Simple escaping to prevent confusion with instructions
+        return str_replace( array( 'INSTRUCTIONS:', 'SYSTEM:', 'USER:' ), '', $content );
     }
 
     /**
@@ -204,17 +275,10 @@ class WP_Referral_Link_Maker_AI_Engine {
      * @return string Sanitized content.
      */
     private function sanitize_ai_response( $content ) {
-        // Start from WordPress's default allowed HTML for post content
         $allowed_html = wp_kses_allowed_html( 'post' );
-
-        // Ensure that <a> tags always allow the "rel" attribute so that
-        // AI-inserted links can use configurations like "sponsored" or
-        // combined values such as "nofollow sponsored" without being stripped
         if ( isset( $allowed_html['a'] ) && is_array( $allowed_html['a'] ) ) {
             $allowed_html['a']['rel'] = true;
         }
-
-        // Use wp_kses with the customized allowed HTML to sanitize the content
         return wp_kses( $content, $allowed_html );
     }
 
@@ -226,29 +290,21 @@ class WP_Referral_Link_Maker_AI_Engine {
      * @return string|WP_Error Extracted content or error on invalid AI response.
      */
     private function extract_content_from_response( $response, $original ) {
-        // The AI should return the content directly
-        // Trim any extra whitespace or formatting
         $response = trim( $response );
 
-        // If response is empty, return an error
+        // Remove markdown code blocks if AI added them despite instructions
+        $response = preg_replace( '/^```html\s*|\s*```$/', '', $response );
+
         if ( empty( $response ) ) {
-            return new WP_Error(
-                'ai_engine_invalid_response',
-                __( 'AI Engine returned an empty response.', 'wp-referral-link-maker' )
-            );
+            return new WP_Error( 'ai_engine_empty', 'Empty response' );
         }
 
-        // Compare stripped text content to handle HTML compression scenarios
-        $original_text = wp_strip_all_tags( $original );
-        $response_text = wp_strip_all_tags( $response );
+        // Basic safety check: length shouldn't vary wildly for a simple link insertion task
+        // But chunking makes this check safer as we compare smaller bits
+        $len_ratio = strlen( strip_tags($response) ) / ( strlen( strip_tags($original) ) + 1 );
         
-        $min_text_length = intval( strlen( $original_text ) * self::MIN_RESPONSE_LENGTH_RATIO );
-        
-        if ( strlen( $response_text ) < $min_text_length ) {
-            return new WP_Error(
-                'ai_engine_invalid_response',
-                __( 'AI Engine returned a response that is too short.', 'wp-referral-link-maker' )
-            );
+        if ( $len_ratio < 0.5 ) {
+             return new WP_Error( 'ai_engine_short', 'Response too short compared to original' );
         }
 
         return $response;
