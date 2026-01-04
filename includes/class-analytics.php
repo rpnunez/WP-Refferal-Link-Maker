@@ -1,0 +1,175 @@
+<?php
+/**
+ * Analytics tracking functionality
+ *
+ * @package    WP_Referral_Link_Maker
+ * @subpackage WP_Referral_Link_Maker/includes
+ */
+
+/**
+ * Handle analytics tracking for referral links.
+ *
+ * This class tracks user interactions with referral links.
+ */
+class WP_Referral_Link_Maker_Analytics {
+
+    /**
+     * Initialize analytics tracking.
+     */
+    public function __construct() {
+        add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_tracking_script' ) );
+        add_action( 'wp_ajax_wp_rlm_track_click', array( $this, 'track_link_click' ) );
+        add_action( 'wp_ajax_nopriv_wp_rlm_track_click', array( $this, 'track_link_click' ) );
+    }
+
+    /**
+     * Enqueue tracking script on frontend.
+     */
+    public function enqueue_tracking_script() {
+        wp_enqueue_script(
+            'wp-rlm-analytics',
+            WP_REFERRAL_LINK_MAKER_PLUGIN_URL . 'public/js/analytics.js',
+            array( 'jquery' ),
+            WP_REFERRAL_LINK_MAKER_VERSION,
+            true
+        );
+
+        wp_localize_script( 'wp-rlm-analytics', 'wpRlmAnalytics', array(
+            'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+            'nonce'   => wp_create_nonce( 'wp_rlm_analytics_nonce' ),
+        ) );
+    }
+
+    /**
+     * Track link click via AJAX.
+     */
+    public function track_link_click() {
+        check_ajax_referer( 'wp_rlm_analytics_nonce', 'nonce' );
+
+        global $wpdb;
+
+        $referral_link_id = isset( $_POST['referral_link_id'] ) ? absint( $_POST['referral_link_id'] ) : 0;
+        $post_id = isset( $_POST['post_id'] ) ? absint( $_POST['post_id'] ) : 0;
+        $referrer_url = isset( $_POST['referrer_url'] ) ? esc_url_raw( $_POST['referrer_url'] ) : '';
+
+        if ( ! $referral_link_id ) {
+            wp_send_json_error( array( 'message' => 'Invalid referral link ID' ) );
+            return;
+        }
+
+        $table_name = $wpdb->prefix . 'wp_rlm_analytics';
+
+        $data = array(
+            'referral_link_id' => $referral_link_id,
+            'post_id'          => $post_id,
+            'user_id'          => get_current_user_id(),
+            'click_time'       => current_time( 'mysql' ),
+            'user_ip'          => $this->get_user_ip(),
+            'user_agent'       => $this->get_user_agent(),
+            'referrer_url'     => $referrer_url,
+        );
+
+        $wpdb->insert( $table_name, $data );
+
+        wp_send_json_success( array( 'message' => 'Click tracked successfully' ) );
+    }
+
+    /**
+     * Get user IP address.
+     *
+     * @return string User IP address.
+     */
+    private function get_user_ip() {
+        $ip = '';
+
+        if ( ! empty( $_SERVER['HTTP_CLIENT_IP'] ) ) {
+            $ip = $_SERVER['HTTP_CLIENT_IP'];
+        } elseif ( ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } elseif ( ! empty( $_SERVER['REMOTE_ADDR'] ) ) {
+            $ip = $_SERVER['REMOTE_ADDR'];
+        }
+
+        return sanitize_text_field( $ip );
+    }
+
+    /**
+     * Get user agent.
+     *
+     * @return string User agent string.
+     */
+    private function get_user_agent() {
+        return isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( $_SERVER['HTTP_USER_AGENT'] ) : '';
+    }
+
+    /**
+     * Get analytics data for a specific referral link.
+     *
+     * @param int $referral_link_id Referral link ID.
+     * @return array Analytics data.
+     */
+    public static function get_link_analytics( $referral_link_id ) {
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . 'wp_rlm_analytics';
+
+        $total_clicks = $wpdb->get_var( $wpdb->prepare(
+            "SELECT COUNT(*) FROM $table_name WHERE referral_link_id = %d",
+            $referral_link_id
+        ) );
+
+        $unique_users = $wpdb->get_var( $wpdb->prepare(
+            "SELECT COUNT(DISTINCT user_ip) FROM $table_name WHERE referral_link_id = %d",
+            $referral_link_id
+        ) );
+
+        $recent_clicks = $wpdb->get_results( $wpdb->prepare(
+            "SELECT * FROM $table_name WHERE referral_link_id = %d ORDER BY click_time DESC LIMIT 10",
+            $referral_link_id
+        ) );
+
+        return array(
+            'total_clicks'  => intval( $total_clicks ),
+            'unique_users'  => intval( $unique_users ),
+            'recent_clicks' => $recent_clicks,
+        );
+    }
+
+    /**
+     * Get overall analytics data.
+     *
+     * @return array Overall analytics data.
+     */
+    public static function get_overall_analytics() {
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . 'wp_rlm_analytics';
+
+        $total_clicks = $wpdb->get_var( "SELECT COUNT(*) FROM $table_name" );
+
+        $unique_users = $wpdb->get_var( "SELECT COUNT(DISTINCT user_ip) FROM $table_name" );
+
+        $clicks_by_link = $wpdb->get_results(
+            "SELECT referral_link_id, COUNT(*) as click_count 
+            FROM $table_name 
+            GROUP BY referral_link_id 
+            ORDER BY click_count DESC 
+            LIMIT 10"
+        );
+
+        $clicks_by_date = $wpdb->get_results(
+            "SELECT DATE(click_time) as date, COUNT(*) as click_count 
+            FROM $table_name 
+            WHERE click_time >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+            GROUP BY DATE(click_time) 
+            ORDER BY date DESC"
+        );
+
+        return array(
+            'total_clicks'    => intval( $total_clicks ),
+            'unique_users'    => intval( $unique_users ),
+            'clicks_by_link'  => $clicks_by_link,
+            'clicks_by_date'  => $clicks_by_date,
+        );
+    }
+}
