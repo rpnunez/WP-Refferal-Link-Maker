@@ -11,6 +11,15 @@ The plugin registers two custom post types for organizing and managing referral 
 1. **Referral Link Group** - Categorize and organize referral links into groups for better management
 2. **Referral Link Maker** - Define individual referral links with AI automation settings
 
+### Block Editor Integration
+
+- **Live Preview**: Preview AI-suggested referral links directly in the Gutenberg block editor before publishing
+- **Smart Link Suggestions**: Get intelligent link suggestions based on your post content
+- **One-Click Apply**: Apply suggested links to your content with a single click
+- **Sidebar Panel**: Dedicated sidebar panel in the block editor for easy access to referral link features
+- **Real-time Analysis**: Analyze your content to see which keywords match your referral links
+- **Context-Aware**: See how many times each keyword appears in your content
+
 ### Admin Dashboard Integration
 
 - **Overview Page**: Manage global values and view statistics
@@ -104,6 +113,36 @@ Organize your referral links with groups that include:
    - Global suffix (tracking parameters)
 3. Click **Save Global Values**
 
+### Using the Block Editor Integration
+
+The plugin provides seamless integration with the Gutenberg block editor for real-time link suggestions and previews:
+
+1. **Open the Referral Links Panel**:
+   - While editing a post in the block editor, click the three-dot menu (⋮) in the top-right corner
+   - Select "Referral Links" from the menu to open the sidebar panel
+
+2. **Get Link Suggestions**:
+   - After writing your post content, click the "Suggest Links" button
+   - The plugin will analyze your content and show relevant referral links
+   - See how many times each keyword appears in your content
+   - View contextual information about each suggested link
+
+3. **Preview Links**:
+   - Click the "Preview with Links" button to see how your content will look with referral links inserted
+   - A preview modal will display your content with all links applied
+   - Review the placement and styling of the links before applying them
+
+4. **Apply Links**:
+   - If you're satisfied with the preview, click the "Apply Links" button
+   - The content in your post editor will be updated with the referral links
+   - Continue editing or publish your post
+
+5. **Benefits**:
+   - Preview changes before committing them
+   - Ensure links are placed naturally in your content
+   - Save time with intelligent link suggestions
+   - Maintain full control over which links to apply
+
 ## AI Engine Integration
 
 This plugin is designed to work with the [Meow Apps AI Engine](https://wordpress.org/plugins/ai-engine/) plugin. The AI Engine provides intelligent analysis and link insertion capabilities.
@@ -173,6 +212,8 @@ wp-referral-link-maker/
 │   ├── class-wp-referral-link-maker.php  # Core plugin class
 │   ├── class-post-types.php      # Custom post types
 │   ├── class-meta-boxes.php      # Meta box handlers
+│   ├── class-block-editor.php    # Block editor integration
+│   ├── class-ai-engine.php       # AI Engine integration
 │   └── class-cron.php            # Cron job handlers
 ├── languages/                     # Translation files
 ├── wp-referral-link-maker.php    # Main plugin file
@@ -210,6 +251,15 @@ Developed by rpnunez
 Designed to integrate with Meow Apps AI Engine
 
 ## Changelog
+
+### 1.1.0
+- **NEW**: Block editor (Gutenberg) integration
+- **NEW**: Live preview of AI-suggested referral links before publishing
+- **NEW**: Smart link suggestions based on post content
+- **NEW**: Sidebar panel for easy access to referral link features
+- **NEW**: One-click apply functionality for suggested links
+- **IMPROVED**: Real-time content analysis showing keyword matches
+- **IMPROVED**: Enhanced user experience with visual feedback
 
 ### 1.0.0
 - Initial release
