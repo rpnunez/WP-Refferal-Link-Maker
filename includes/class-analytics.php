@@ -183,7 +183,7 @@ class WP_Referral_Link_Maker_Analytics {
         $clicks_by_date = $wpdb->get_results(
             "SELECT DATE(click_time) as date, COUNT(*) as click_count 
             FROM $table_name 
-            WHERE click_time >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+            WHERE click_time >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL 30 DAY)
             GROUP BY DATE(click_time) 
             ORDER BY date DESC"
         );
