@@ -54,10 +54,7 @@ class Plugin {
         add_action( 'admin_enqueue_scripts', array( $plugin_admin, 'enqueue_scripts' ) );
 
         // Register settings functionality
-        $plugin_settings = new Settings( $this->get_plugin_name(), $this->get_version() );
-
-        add_action( 'admin_menu', array( $plugin_settings, 'add_settings_submenu' ), 20 );
-        add_action( 'admin_init', array( $plugin_settings, 'register_settings' ) );
+        Settings::register();
     }
 
     /**
