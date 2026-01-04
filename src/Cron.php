@@ -7,6 +7,8 @@
 
 namespace NunezReferralEngine;
 
+use NunezReferralEngine\Services\AIEngine;
+
 /**
  * Handle cron jobs for automated processing.
  *
@@ -156,7 +158,7 @@ class Cron {
      * @return string|null Processed content or null if AI processing failed.
      */
     private function get_ai_processed_content( $content, $referral_links, $post_id = 0 ) {
-        $ai_engine = new AIEngineService();
+        $ai_engine = new AIEngine();
 
         if ( ! $ai_engine->is_available() ) {
             // Log that AI Engine is not available

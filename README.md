@@ -175,9 +175,11 @@ wp-referral-link-maker/
 │   ├── PostTypes.php             # Custom post types
 │   ├── MetaBoxes.php             # Meta box handlers
 │   ├── Cron.php                  # Cron job handlers
-│   ├── AIEngineService.php       # AI Engine integration
 │   ├── Admin.php                 # Admin overview functionality
-│   └── Settings.php              # Settings page functionality
+│   ├── Settings.php              # Settings page functionality
+│   └── Services/
+│       ├── AIEngine.php          # AI Engine integration
+│       └── PromptManager.php     # AI prompt building
 ├── vendor/                        # Composer autoloader (generated)
 ├── composer.json                  # Composer configuration
 ├── languages/                     # Translation files
@@ -245,7 +247,7 @@ Designed to integrate with Meow Apps AI Engine
   
 - **Class Renames**
   - `WP_Referral_Link_Maker` → `Plugin`
-  - `WP_Referral_Link_Maker_AI_Engine` → `AIEngineService`
+  - `WP_Referral_Link_Maker_AI_Engine` → `AIEngineService` (now `Services\AIEngine`)
   - `WP_Referral_Link_Maker_Admin` → `Admin`
   - All other classes simplified with namespace
   
