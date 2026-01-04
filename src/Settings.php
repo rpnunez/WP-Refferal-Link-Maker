@@ -15,53 +15,31 @@ namespace NunezReferralEngine;
 class Settings {
 
     /**
-     * The ID of this plugin.
-     */
-    private $plugin_name;
-
-    /**
-     * The version of this plugin.
-     */
-    private $version;
-
-    /**
-     * Initialize the class and set its properties.
-     *
-     * @param string $plugin_name The name of this plugin.
-     * @param string $version     The version of this plugin.
-     */
-    public function __construct( $plugin_name, $version ) {
-        $this->plugin_name = $plugin_name;
-        $this->version = $version;
-    }
-
-    /**
      * Register settings hooks.
      */
     public static function register() {
-        $instance = new self( 'wp-referral-link-maker', NRE_VERSION );
-        add_action( 'admin_menu', array( $instance, 'add_settings_submenu' ), 20 );
-        add_action( 'admin_init', array( $instance, 'register_settings' ) );
+        add_action( 'admin_menu', array( __CLASS__, 'add_settings_submenu' ), 20 );
+        add_action( 'admin_init', array( __CLASS__, 'register_settings' ) );
     }
 
     /**
      * Add Settings submenu page.
      */
-    public function add_settings_submenu() {
+    public static function add_settings_submenu() {
         add_submenu_page(
             'wp-referral-link-maker',
             __( 'Settings', 'wp-referral-link-maker' ),
             __( 'Settings', 'wp-referral-link-maker' ),
             'manage_options',
             'wp-referral-link-maker-settings',
-            array( $this, 'display_settings_page' )
+            array( __CLASS__, 'display_settings_page' )
         );
     }
 
     /**
      * Display the Settings page.
      */
-    public function display_settings_page() {
+    public static function display_settings_page() {
         // Check user capabilities
         if ( ! current_user_can( 'manage_options' ) ) {
             return;
@@ -73,19 +51,19 @@ class Settings {
     /**
      * Register plugin settings.
      */
-    public function register_settings() {
+    public static function register_settings() {
         // Register settings
         register_setting(
             'wp_referral_link_maker_settings',
             'wp_referral_link_maker_settings',
-            array( $this, 'sanitize_settings' )
+            array( __CLASS__, 'sanitize_settings' )
         );
 
         // Add settings section
         add_settings_section(
             'wp_referral_link_maker_ai_engine',
             __( 'AI Engine Configuration', 'wp-referral-link-maker' ),
-            array( $this, 'ai_engine_section_callback' ),
+            array( __CLASS__, 'ai_engine_section_callback' ),
             'wp-referral-link-maker-settings'
         );
 
@@ -93,7 +71,7 @@ class Settings {
         add_settings_field(
             'ai_engine_enabled',
             __( 'Enable AI Engine', 'wp-referral-link-maker' ),
-            array( $this, 'ai_engine_enabled_callback' ),
+            array( __CLASS__, 'ai_engine_enabled_callback' ),
             'wp-referral-link-maker-settings',
             'wp_referral_link_maker_ai_engine'
         );
@@ -101,7 +79,7 @@ class Settings {
         add_settings_field(
             'api_key',
             __( 'API Key', 'wp-referral-link-maker' ),
-            array( $this, 'api_key_callback' ),
+            array( __CLASS__, 'api_key_callback' ),
             'wp-referral-link-maker-settings',
             'wp_referral_link_maker_ai_engine'
         );
@@ -109,7 +87,7 @@ class Settings {
         add_settings_field(
             'global_ai_context',
             __( 'Global AI Context', 'wp-referral-link-maker' ),
-            array( $this, 'global_ai_context_callback' ),
+            array( __CLASS__, 'global_ai_context_callback' ),
             'wp-referral-link-maker-settings',
             'wp_referral_link_maker_ai_engine'
         );
@@ -118,14 +96,14 @@ class Settings {
         add_settings_section(
             'wp_referral_link_maker_automation',
             __( 'Automation Settings', 'wp-referral-link-maker' ),
-            array( $this, 'automation_section_callback' ),
+            array( __CLASS__, 'automation_section_callback' ),
             'wp-referral-link-maker-settings'
         );
 
         add_settings_field(
             'auto_update_enabled',
             __( 'Enable Auto Updates', 'wp-referral-link-maker' ),
-            array( $this, 'auto_update_enabled_callback' ),
+            array( __CLASS__, 'auto_update_enabled_callback' ),
             'wp-referral-link-maker-settings',
             'wp_referral_link_maker_automation'
         );
@@ -133,7 +111,7 @@ class Settings {
         add_settings_field(
             'cron_interval',
             __( 'Update Interval', 'wp-referral-link-maker' ),
-            array( $this, 'cron_interval_callback' ),
+            array( __CLASS__, 'cron_interval_callback' ),
             'wp-referral-link-maker-settings',
             'wp_referral_link_maker_automation'
         );
@@ -141,7 +119,7 @@ class Settings {
         add_settings_field(
             'post_status_after_edit',
             __( 'Post Status After AI Edit', 'wp-referral-link-maker' ),
-            array( $this, 'post_status_after_edit_callback' ),
+            array( __CLASS__, 'post_status_after_edit_callback' ),
             'wp-referral-link-maker-settings',
             'wp_referral_link_maker_automation'
         );
@@ -149,7 +127,7 @@ class Settings {
         add_settings_field(
             'link_rel_attribute',
             __( 'Link Rel Attribute', 'wp-referral-link-maker' ),
-            array( $this, 'link_rel_attribute_callback' ),
+            array( __CLASS__, 'link_rel_attribute_callback' ),
             'wp-referral-link-maker-settings',
             'wp_referral_link_maker_automation'
         );
@@ -161,7 +139,7 @@ class Settings {
      * @param array $input Settings input.
      * @return array Sanitized settings.
      */
-    public function sanitize_settings( $input ) {
+    public static function sanitize_settings( $input ) {
         $sanitized = array();
 
         if ( isset( $input['ai_engine_enabled'] ) ) {
@@ -198,21 +176,21 @@ class Settings {
     /**
      * AI Engine section callback.
      */
-    public function ai_engine_section_callback() {
+    public static function ai_engine_section_callback() {
         echo '<p>' . esc_html__( 'Configure AI Engine plugin integration for automated referral link insertion.', 'wp-referral-link-maker' ) . '</p>';
     }
 
     /**
      * Automation section callback.
      */
-    public function automation_section_callback() {
+    public static function automation_section_callback() {
         echo '<p>' . esc_html__( 'Configure automatic processing of posts with referral links.', 'wp-referral-link-maker' ) . '</p>';
     }
 
     /**
      * AI Engine enabled field callback.
      */
-    public function ai_engine_enabled_callback() {
+    public static function ai_engine_enabled_callback() {
         $settings = get_option( 'wp_referral_link_maker_settings' );
         $value = isset( $settings['ai_engine_enabled'] ) ? $settings['ai_engine_enabled'] : false;
         ?>
@@ -226,7 +204,7 @@ class Settings {
     /**
      * API Key field callback.
      */
-    public function api_key_callback() {
+    public static function api_key_callback() {
         $settings = get_option( 'wp_referral_link_maker_settings' );
         $value = isset( $settings['api_key'] ) ? $settings['api_key'] : '';
         ?>
@@ -238,7 +216,7 @@ class Settings {
     /**
      * Global AI Context field callback.
      */
-    public function global_ai_context_callback() {
+    public static function global_ai_context_callback() {
         $settings = get_option( 'wp_referral_link_maker_settings' );
         $value = isset( $settings['global_ai_context'] ) ? $settings['global_ai_context'] : '';
         ?>
@@ -250,7 +228,7 @@ class Settings {
     /**
      * Auto update enabled field callback.
      */
-    public function auto_update_enabled_callback() {
+    public static function auto_update_enabled_callback() {
         $settings = get_option( 'wp_referral_link_maker_settings' );
         $value = isset( $settings['auto_update_enabled'] ) ? $settings['auto_update_enabled'] : false;
         ?>
@@ -264,7 +242,7 @@ class Settings {
     /**
      * Cron interval field callback.
      */
-    public function cron_interval_callback() {
+    public static function cron_interval_callback() {
         $settings = get_option( 'wp_referral_link_maker_settings' );
         $value = isset( $settings['cron_interval'] ) ? $settings['cron_interval'] : 'daily';
         ?>
@@ -280,7 +258,7 @@ class Settings {
     /**
      * Post status after edit field callback.
      */
-    public function post_status_after_edit_callback() {
+    public static function post_status_after_edit_callback() {
         $settings = get_option( 'wp_referral_link_maker_settings' );
         $value = isset( $settings['post_status_after_edit'] ) ? $settings['post_status_after_edit'] : 'pending';
         ?>
@@ -296,7 +274,7 @@ class Settings {
     /**
      * Link rel attribute field callback.
      */
-    public function link_rel_attribute_callback() {
+    public static function link_rel_attribute_callback() {
         $settings = get_option( 'wp_referral_link_maker_settings' );
         $value = isset( $settings['link_rel_attribute'] ) ? $settings['link_rel_attribute'] : 'nofollow';
         ?>
