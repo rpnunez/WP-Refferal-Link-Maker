@@ -73,6 +73,8 @@ class WP_Referral_Link_Maker_Meta_Boxes {
         $group_id = get_post_meta( $post->ID, '_ref_link_group', true );
         $priority = get_post_meta( $post->ID, '_ref_link_priority', true );
         $max_insertions = get_post_meta( $post->ID, '_ref_link_max_insertions', true );
+        $source = get_post_meta( $post->ID, '_ref_link_source', true );
+        $external_id = get_post_meta( $post->ID, '_ref_link_external_id', true );
 
         // Get available groups
         $groups = get_posts( array(
@@ -83,6 +85,23 @@ class WP_Referral_Link_Maker_Meta_Boxes {
 
         ?>
         <div class="wp-rlm-meta-box">
+            <?php if ( ! empty( $source ) ) : ?>
+                <div class="form-field" style="background: #f0f0f1; padding: 10px; margin-bottom: 15px; border-left: 3px solid #2271b1;">
+                    <strong><?php esc_html_e( 'Link Source:', 'wp-referral-link-maker' ); ?></strong>
+                    <?php
+                    $source_names = array(
+                        'amazon' => __( 'Amazon Associates', 'wp-referral-link-maker' ),
+                        'shareasale' => __( 'ShareASale', 'wp-referral-link-maker' ),
+                        'manual' => __( 'Manual', 'wp-referral-link-maker' ),
+                    );
+                    echo esc_html( isset( $source_names[ $source ] ) ? $source_names[ $source ] : ucfirst( $source ) );
+                    ?>
+                    <?php if ( ! empty( $external_id ) ) : ?>
+                        <br><small><?php echo esc_html( sprintf( __( 'External ID: %s', 'wp-referral-link-maker' ), $external_id ) ); ?></small>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
+
             <div class="form-field">
                 <label for="ref_link_keyword"><?php esc_html_e( 'Keyword', 'wp-referral-link-maker' ); ?></label>
                 <input type="text" id="ref_link_keyword" name="ref_link_keyword" value="<?php echo esc_attr( $keyword ); ?>" class="widefat" />

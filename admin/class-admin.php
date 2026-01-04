@@ -73,6 +73,16 @@ class WP_Referral_Link_Maker_Admin {
             array( $this, 'display_overview_page' )
         );
 
+        // Add Import submenu
+        add_submenu_page(
+            'wp-referral-link-maker',
+            __( 'Import Links', 'wp-referral-link-maker' ),
+            __( 'Import Links', 'wp-referral-link-maker' ),
+            'manage_options',
+            'wp-referral-link-maker-import',
+            array( $this, 'display_import_page' )
+        );
+
         // Add Settings submenu
         add_submenu_page(
             'wp-referral-link-maker',
@@ -81,6 +91,16 @@ class WP_Referral_Link_Maker_Admin {
             'manage_options',
             'wp-referral-link-maker-settings',
             array( $this, 'display_settings_page' )
+        );
+
+        // Add Affiliate Networks submenu
+        add_submenu_page(
+            'wp-referral-link-maker',
+            __( 'Affiliate Networks', 'wp-referral-link-maker' ),
+            __( 'Affiliate Networks', 'wp-referral-link-maker' ),
+            'manage_options',
+            'wp-referral-link-maker-affiliate-networks',
+            array( $this, 'display_affiliate_networks_page' )
         );
     }
 
@@ -125,6 +145,52 @@ class WP_Referral_Link_Maker_Admin {
         }
 
         include WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'admin/partials/settings-page.php';
+    }
+
+    /**
+     * Display the Import page.
+     */
+    public function display_import_page() {
+        // Check user capabilities
+        if ( ! current_user_can( 'manage_options' ) ) {
+            return;
+        }
+
+        // Handle import request
+        $import_result = null;
+        if ( isset( $_POST['wp_rlm_import_links'] ) && check_admin_referer( 'wp_rlm_import_links' ) ) {
+            require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'includes/class-affiliate-api-manager.php';
+            
+            $network = isset( $_POST['network'] ) ? sanitize_text_field( $_POST['network'] ) : '';
+            $manager = new WP_Referral_Link_Maker_Affiliate_API_Manager();
+            
+            $args = array();
+            
+            // Network-specific arguments
+            if ( $network === 'amazon' && ! empty( $_POST['amazon_keywords'] ) ) {
+                $args['keywords'] = sanitize_text_field( $_POST['amazon_keywords'] );
+                $args['limit'] = isset( $_POST['limit'] ) ? absint( $_POST['limit'] ) : 10;
+            } elseif ( $network === 'shareasale' ) {
+                $args['merchant_id'] = isset( $_POST['merchant_id'] ) ? sanitize_text_field( $_POST['merchant_id'] ) : '';
+                $args['limit'] = isset( $_POST['limit'] ) ? absint( $_POST['limit'] ) : 50;
+            }
+            
+            $import_result = $manager->import_links( $network, $args );
+        }
+
+        include WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'admin/partials/import-page.php';
+    }
+
+    /**
+     * Display the Affiliate Networks page.
+     */
+    public function display_affiliate_networks_page() {
+        // Check user capabilities
+        if ( ! current_user_can( 'manage_options' ) ) {
+            return;
+        }
+
+        include WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'admin/partials/affiliate-networks-page.php';
     }
 
     /**
@@ -201,6 +267,21 @@ class WP_Referral_Link_Maker_Admin {
             array( $this, 'link_rel_attribute_callback' ),
             'wp-referral-link-maker-settings',
             'wp_referral_link_maker_automation'
+        );
+
+        // Register affiliate networks settings
+        register_setting(
+            'wp_referral_link_maker_affiliate_networks',
+            'wp_referral_link_maker_affiliate_networks',
+            array( $this, 'sanitize_affiliate_networks' )
+        );
+
+        // Add affiliate networks section
+        add_settings_section(
+            'wp_referral_link_maker_affiliate_networks_section',
+            __( 'Affiliate Network APIs', 'wp-referral-link-maker' ),
+            array( $this, 'affiliate_networks_section_callback' ),
+            'wp-referral-link-maker-affiliate-networks'
         );
     }
 
@@ -341,6 +422,44 @@ class WP_Referral_Link_Maker_Admin {
         </select>
         <p class="description"><?php esc_html_e( 'The rel attribute to use for referral links (affects SEO).', 'wp-referral-link-maker' ); ?></p>
         <?php
+    }
+
+    /**
+     * Affiliate networks section callback.
+     */
+    public function affiliate_networks_section_callback() {
+        echo '<p>' . esc_html__( 'Configure API credentials for affiliate networks to import links directly.', 'wp-referral-link-maker' ) . '</p>';
+    }
+
+    /**
+     * Sanitize affiliate networks settings.
+     *
+     * @param array $input Settings input.
+     * @return array Sanitized settings.
+     */
+    public function sanitize_affiliate_networks( $input ) {
+        $sanitized = array();
+
+        // Sanitize Amazon settings
+        if ( isset( $input['amazon'] ) ) {
+            $sanitized['amazon'] = array(
+                'access_key'    => sanitize_text_field( $input['amazon']['access_key'] ),
+                'secret_key'    => sanitize_text_field( $input['amazon']['secret_key'] ),
+                'associate_tag' => sanitize_text_field( $input['amazon']['associate_tag'] ),
+                'region'        => sanitize_text_field( $input['amazon']['region'] ),
+            );
+        }
+
+        // Sanitize ShareASale settings
+        if ( isset( $input['shareasale'] ) ) {
+            $sanitized['shareasale'] = array(
+                'affiliate_id' => sanitize_text_field( $input['shareasale']['affiliate_id'] ),
+                'api_token'    => sanitize_text_field( $input['shareasale']['api_token'] ),
+                'api_secret'   => sanitize_text_field( $input['shareasale']['api_secret'] ),
+            );
+        }
+
+        return $sanitized;
     }
 
     /**
