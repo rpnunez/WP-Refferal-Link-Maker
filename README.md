@@ -4,6 +4,20 @@ A comprehensive WordPress plugin that seamlessly integrates referral links into 
 
 ## Features
 
+### Affiliate Network Integration
+
+Import and manage affiliate links directly from popular affiliate networks:
+
+- **Amazon Associates**: Import product links using Amazon Product Advertising API
+  - Search for products by keywords
+  - Automatically generate affiliate links with your Associate Tag
+  - Track external product IDs (ASIN)
+  
+- **ShareASale**: Import merchant links using ShareASale API
+  - Import links from specific merchants or all active merchants
+  - Automatically includes your affiliate tracking parameters
+  - Supports multiple merchants simultaneously
+
 ### Custom Post Types
 
 The plugin registers two custom post types for organizing and managing referral links:
@@ -18,6 +32,16 @@ The plugin registers two custom post types for organizing and managing referral 
   - Configure default group settings
   - Set global link prefix and suffix for tracking parameters
   - Quick action buttons for common tasks
+
+- **Import Links Page**: Import affiliate links from connected networks
+  - Search and import Amazon products
+  - Import ShareASale merchant links
+  - View import results and statistics
+
+- **Affiliate Networks Page**: Configure API credentials
+  - Amazon Product Advertising API settings
+  - ShareASale API settings
+  - Test connections and view status
 
 - **Settings Page**: Configure AI Engine integration and automation
   - Enable/disable AI Engine integration
@@ -38,6 +62,7 @@ The plugin registers two custom post types for organizing and managing referral 
 Each referral link includes:
 - **Keyword**: The text to be linked in posts
 - **URL**: The full referral URL with tracking parameters
+- **Source**: Track whether link was imported from Amazon, ShareASale, or added manually
 - **Group Assignment**: Organize links by category
 - **Priority**: Control which links are inserted first (0-100)
 - **Max Insertions**: Limit how many times a link appears per post
@@ -69,6 +94,50 @@ Organize your referral links with groups that include:
    - Enable automatic updates if desired
    - Set your preferred update interval
    - Choose post status after AI editing
+
+### Configuring Affiliate Networks
+
+#### Amazon Associates
+
+1. Go to **Referral Links > Affiliate Networks**
+2. Under **Amazon Associates API**, enter:
+   - **Access Key**: Your AWS IAM access key with PA API permissions
+   - **Secret Key**: Your AWS IAM secret key
+   - **Associate Tag**: Your Amazon Associates tracking ID
+   - **Region**: Select your AWS region
+3. Click **Save Affiliate Network Settings**
+4. Visit [Amazon Product Advertising API](https://affiliate-program.amazon.com/help/node/topic/G201825840) for detailed setup instructions
+
+#### ShareASale
+
+1. Go to **Referral Links > Affiliate Networks**
+2. Under **ShareASale API**, enter:
+   - **Affiliate ID**: Your ShareASale affiliate account ID
+   - **API Token**: Your ShareASale API token
+   - **API Secret**: Your ShareASale API secret key
+3. Click **Save Affiliate Network Settings**
+4. Visit [ShareASale API Documentation](https://account.shareasale.com/a-apicodev.cfm) for detailed setup instructions
+
+### Importing Affiliate Links
+
+Once you've configured your affiliate network credentials:
+
+1. Go to **Referral Links > Import Links**
+2. Choose the network (Amazon or ShareASale)
+3. For Amazon:
+   - Enter search keywords for products
+   - Set the number of products to import (1-100)
+4. For ShareASale:
+   - Optionally enter a specific merchant ID
+   - Set the number of links to import (1-500)
+5. Click **Import Links**
+6. Review the import results showing successful, skipped, and failed imports
+
+Imported links will automatically include:
+- Product/merchant name as the title and keyword
+- Full affiliate URL with your tracking parameters
+- Source tracking (Amazon or ShareASale)
+- External ID (ASIN for Amazon, Link ID for ShareASale)
 
 ### Creating Referral Links
 

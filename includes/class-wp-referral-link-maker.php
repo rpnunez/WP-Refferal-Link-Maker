@@ -53,6 +53,7 @@ class WP_Referral_Link_Maker {
         require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'includes/class-cron.php';
         require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'includes/class-meta-boxes.php';
         require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'admin/class-admin.php';
+        require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'includes/class-affiliate-api-manager.php';
 
         $this->loader = new WP_Referral_Link_Maker_Loader();
     }
