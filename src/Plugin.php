@@ -7,6 +7,11 @@
 
 namespace NunezReferralEngine;
 
+use NunezReferralEngine\PostTypes\LinkGroup;
+use NunezReferralEngine\PostTypes\LinkMaker;
+use NunezReferralEngine\MetaBoxes\LinkGroup as LinkGroupMetaBoxes;
+use NunezReferralEngine\MetaBoxes\LinkMaker as LinkMakerMetaBoxes;
+
 /**
  * The core plugin class.
  *
@@ -33,8 +38,8 @@ class Plugin {
         $this->plugin_name = 'wp-referral-link-maker';
 
         $this->define_admin_hooks();
-        $this->define_post_type_hooks();
-        $this->define_meta_box_hooks();
+        $this->register_post_types();
+        $this->register_meta_boxes();
         $this->define_cron_hooks();
     }
 
@@ -49,26 +54,23 @@ class Plugin {
         add_action( 'admin_enqueue_scripts', array( $plugin_admin, 'enqueue_scripts' ) );
 
         // Register settings functionality
-        $plugin_settings = new Settings( $this->get_plugin_name(), $this->get_version() );
-
-        add_action( 'admin_menu', array( $plugin_settings, 'add_settings_submenu' ), 20 );
-        add_action( 'admin_init', array( $plugin_settings, 'register_settings' ) );
+        Settings::register();
     }
 
     /**
      * Register all of the hooks related to custom post types.
      */
-    private function define_post_type_hooks() {
-        $post_types = new PostTypes();
-
-        add_action( 'init', array( $post_types, 'register_post_types' ) );
+    private function register_post_types() {
+        add_action( 'init', array( 'NunezReferralEngine\PostTypes\LinkGroup', 'register' ) );
+        add_action( 'init', array( 'NunezReferralEngine\PostTypes\LinkMaker', 'register' ) );
     }
 
     /**
      * Register all of the hooks related to meta boxes.
      */
-    private function define_meta_box_hooks() {
-        new MetaBoxes();
+    private function register_meta_boxes() {
+        add_action( 'init', array( 'NunezReferralEngine\MetaBoxes\LinkGroup', 'register' ) );
+        add_action( 'init', array( 'NunezReferralEngine\MetaBoxes\LinkMaker', 'register' ) );
     }
 
     /**

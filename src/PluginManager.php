@@ -1,18 +1,22 @@
 <?php
 /**
- * Fired during plugin activation
+ * Plugin activation and deactivation manager
  *
  * @package    NunezReferralEngine
  */
 
 namespace NunezReferralEngine;
 
+use NunezReferralEngine\PostTypes\LinkGroup;
+use NunezReferralEngine\PostTypes\LinkMaker;
+
 /**
- * Fired during plugin activation.
+ * Handles plugin activation and deactivation.
  *
- * This class defines all code necessary to run during the plugin's activation.
+ * This class defines all code necessary to run during the plugin's
+ * activation and deactivation.
  */
-class Activator {
+class PluginManager {
 
     /**
      * Activate the plugin.
@@ -34,10 +38,27 @@ class Activator {
     }
     
     /**
+     * Deactivate the plugin.
+     *
+     * Clear scheduled cron events.
+     */
+    public static function deactivate() {
+        // Clear scheduled cron events
+        $timestamp = wp_next_scheduled( 'wp_referral_link_maker_process_posts' );
+        if ( $timestamp ) {
+            wp_unschedule_event( $timestamp, 'wp_referral_link_maker_process_posts' );
+        }
+        
+        // Flush rewrite rules
+        flush_rewrite_rules();
+    }
+    
+    /**
      * Register custom post types.
      */
     private static function register_custom_post_types() {
-        PostTypes::register_post_types();
+        LinkGroup::register();
+        LinkMaker::register();
     }
     
     /**

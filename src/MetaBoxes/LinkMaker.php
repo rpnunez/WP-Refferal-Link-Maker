@@ -1,38 +1,34 @@
 <?php
 /**
- * Meta boxes for custom post types
+ * Meta boxes for Referral Link Maker post type
  *
  * @package    NunezReferralEngine
  */
 
-namespace NunezReferralEngine;
+namespace NunezReferralEngine\MetaBoxes;
 
 /**
- * Handle meta boxes for custom post types.
- *
- * This class adds and handles meta boxes for:
- * - Referral Link Group
- * - Referral Link Maker
+ * Handle meta boxes for Referral Link Maker post type.
  */
-class MetaBoxes {
+class LinkMaker {
 
     /**
-     * Initialize meta boxes.
+     * Register meta box hooks.
      */
-    public function __construct() {
-        add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ) );
-        add_action( 'save_post', array( $this, 'save_meta_boxes' ), 10, 2 );
+    public static function register() {
+        add_action( 'add_meta_boxes', array( __CLASS__, 'add_meta_boxes' ) );
+        add_action( 'save_post', array( __CLASS__, 'save_meta_boxes' ), 10, 2 );
     }
 
     /**
      * Add meta boxes.
      */
-    public function add_meta_boxes() {
+    public static function add_meta_boxes() {
         // Meta box for Referral Link Maker
         add_meta_box(
             'wp_rlm_link_details',
             __( 'Referral Link Details', 'wp-referral-link-maker' ),
-            array( $this, 'render_link_details_meta_box' ),
+            array( __CLASS__, 'render_link_details_meta_box' ),
             'ref_link_maker',
             'normal',
             'high'
@@ -42,20 +38,10 @@ class MetaBoxes {
         add_meta_box(
             'wp_rlm_ai_settings',
             __( 'AI Automation Settings', 'wp-referral-link-maker' ),
-            array( $this, 'render_ai_settings_meta_box' ),
+            array( __CLASS__, 'render_ai_settings_meta_box' ),
             'ref_link_maker',
             'side',
             'default'
-        );
-
-        // Meta box for Referral Link Group
-        add_meta_box(
-            'wp_rlm_group_settings',
-            __( 'Group Settings', 'wp-referral-link-maker' ),
-            array( $this, 'render_group_settings_meta_box' ),
-            'ref_link_group',
-            'normal',
-            'high'
         );
     }
 
@@ -64,7 +50,7 @@ class MetaBoxes {
      *
      * @param WP_Post $post Current post object.
      */
-    public function render_link_details_meta_box( $post ) {
+    public static function render_link_details_meta_box( $post ) {
         // Add nonce for security
         wp_nonce_field( 'wp_rlm_link_details_nonce', 'wp_rlm_link_details_nonce' );
 
@@ -129,7 +115,7 @@ class MetaBoxes {
      *
      * @param WP_Post $post Current post object.
      */
-    public function render_ai_settings_meta_box( $post ) {
+    public static function render_ai_settings_meta_box( $post ) {
         // Add nonce for security
         wp_nonce_field( 'wp_rlm_ai_settings_nonce', 'wp_rlm_ai_settings_nonce' );
 
@@ -157,42 +143,12 @@ class MetaBoxes {
     }
 
     /**
-     * Render group settings meta box.
-     *
-     * @param WP_Post $post Current post object.
-     */
-    public function render_group_settings_meta_box( $post ) {
-        // Add nonce for security
-        wp_nonce_field( 'wp_rlm_group_settings_nonce', 'wp_rlm_group_settings_nonce' );
-
-        // Get saved values
-        $color = get_post_meta( $post->ID, '_ref_group_color', true );
-        $icon = get_post_meta( $post->ID, '_ref_group_icon', true );
-
-        ?>
-        <div class="wp-rlm-meta-box">
-            <div class="form-field">
-                <label for="ref_group_color"><?php esc_html_e( 'Group Color', 'wp-referral-link-maker' ); ?></label>
-                <input type="text" id="ref_group_color" name="ref_group_color" value="<?php echo esc_attr( $color ? $color : '#0073aa' ); ?>" class="regular-text" />
-                <p class="description"><?php esc_html_e( 'Hex color code for visual identification (e.g., #0073aa).', 'wp-referral-link-maker' ); ?></p>
-            </div>
-
-            <div class="form-field">
-                <label for="ref_group_icon"><?php esc_html_e( 'Group Icon', 'wp-referral-link-maker' ); ?></label>
-                <input type="text" id="ref_group_icon" name="ref_group_icon" value="<?php echo esc_attr( $icon ); ?>" class="regular-text" />
-                <p class="description"><?php esc_html_e( 'Dashicon class name (e.g., dashicons-star-filled).', 'wp-referral-link-maker' ); ?></p>
-            </div>
-        </div>
-        <?php
-    }
-
-    /**
      * Save meta box data.
      *
      * @param int     $post_id Post ID.
      * @param WP_Post $post    Post object.
      */
-    public function save_meta_boxes( $post_id, $post ) {
+    public static function save_meta_boxes( $post_id, $post ) {
         // Check if this is an autosave
         if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
             return;
@@ -205,13 +161,8 @@ class MetaBoxes {
 
         // Save Referral Link Maker meta
         if ( $post->post_type === 'ref_link_maker' ) {
-            $this->save_link_details( $post_id );
-            $this->save_ai_settings( $post_id );
-        }
-
-        // Save Referral Link Group meta
-        if ( $post->post_type === 'ref_link_group' ) {
-            $this->save_group_settings( $post_id );
+            self::save_link_details( $post_id );
+            self::save_ai_settings( $post_id );
         }
     }
 
@@ -220,7 +171,7 @@ class MetaBoxes {
      *
      * @param int $post_id Post ID.
      */
-    private function save_link_details( $post_id ) {
+    private static function save_link_details( $post_id ) {
         // Verify nonce
         if ( ! isset( $_POST['wp_rlm_link_details_nonce'] ) || ! wp_verify_nonce( $_POST['wp_rlm_link_details_nonce'], 'wp_rlm_link_details_nonce' ) ) {
             return;
@@ -257,7 +208,7 @@ class MetaBoxes {
      *
      * @param int $post_id Post ID.
      */
-    private function save_ai_settings( $post_id ) {
+    private static function save_ai_settings( $post_id ) {
         // Verify nonce
         if ( ! isset( $_POST['wp_rlm_ai_settings_nonce'] ) || ! wp_verify_nonce( $_POST['wp_rlm_ai_settings_nonce'], 'wp_rlm_ai_settings_nonce' ) ) {
             return;
@@ -273,31 +224,6 @@ class MetaBoxes {
         // Save AI context
         if ( isset( $_POST['ref_link_ai_context'] ) ) {
             update_post_meta( $post_id, '_ref_link_ai_context', sanitize_textarea_field( $_POST['ref_link_ai_context'] ) );
-        }
-    }
-
-    /**
-     * Save group settings.
-     *
-     * @param int $post_id Post ID.
-     */
-    private function save_group_settings( $post_id ) {
-        // Verify nonce
-        if ( ! isset( $_POST['wp_rlm_group_settings_nonce'] ) || ! wp_verify_nonce( $_POST['wp_rlm_group_settings_nonce'], 'wp_rlm_group_settings_nonce' ) ) {
-            return;
-        }
-
-        // Save color
-        if ( isset( $_POST['ref_group_color'] ) ) {
-            $color = sanitize_hex_color( $_POST['ref_group_color'] );
-            if ( $color ) {
-                update_post_meta( $post_id, '_ref_group_color', $color );
-            }
-        }
-
-        // Save icon
-        if ( isset( $_POST['ref_group_icon'] ) ) {
-            update_post_meta( $post_id, '_ref_group_icon', sanitize_text_field( $_POST['ref_group_icon'] ) );
         }
     }
 }

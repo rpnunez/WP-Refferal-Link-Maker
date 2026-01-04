@@ -40,8 +40,7 @@ if ( ! file_exists( $autoload_file ) ) {
 require_once $autoload_file;
 
 use NunezReferralEngine\Plugin;
-use NunezReferralEngine\Activator;
-use NunezReferralEngine\Deactivator;
+use NunezReferralEngine\PluginManager;
 
 /**
  * Get allowed rel attribute values for referral links.
@@ -68,14 +67,14 @@ function wp_referral_link_maker_sanitize_rel_attribute( $value ) {
  * The code that runs during plugin activation.
  */
 function activate_wp_referral_link_maker() {
-    Activator::activate();
+    PluginManager::activate();
 }
 
 /**
  * The code that runs during plugin deactivation.
  */
 function deactivate_wp_referral_link_maker() {
-    Deactivator::deactivate();
+    PluginManager::deactivate();
 }
 
 register_activation_hook( __FILE__, 'activate_wp_referral_link_maker' );
