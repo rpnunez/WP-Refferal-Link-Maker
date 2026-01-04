@@ -73,6 +73,16 @@ class WP_Referral_Link_Maker_Admin {
             array( $this, 'display_overview_page' )
         );
 
+        // Add Analytics submenu
+        add_submenu_page(
+            'wp-referral-link-maker',
+            __( 'Analytics', 'wp-referral-link-maker' ),
+            __( 'Analytics', 'wp-referral-link-maker' ),
+            'manage_options',
+            'wp-referral-link-maker-analytics',
+            array( $this, 'display_analytics_page' )
+        );
+
         // Add Settings submenu
         add_submenu_page(
             'wp-referral-link-maker',
@@ -113,6 +123,21 @@ class WP_Referral_Link_Maker_Admin {
         $stats = $this->get_statistics();
 
         include WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'admin/partials/overview-page.php';
+    }
+
+    /**
+     * Display the Analytics page.
+     */
+    public function display_analytics_page() {
+        // Check user capabilities
+        if ( ! current_user_can( 'manage_options' ) ) {
+            return;
+        }
+
+        // Get overall analytics data
+        $analytics_data = WP_Referral_Link_Maker_Analytics::get_overall_analytics();
+
+        include WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'admin/partials/analytics-page.php';
     }
 
     /**

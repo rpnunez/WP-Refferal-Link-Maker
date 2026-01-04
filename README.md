@@ -19,6 +19,13 @@ The plugin registers two custom post types for organizing and managing referral 
   - Set global link prefix and suffix for tracking parameters
   - Quick action buttons for common tasks
 
+- **Analytics Page**: Track user interactions with referral links
+  - View overall statistics (total clicks, unique visitors)
+  - See top performing links with click counts
+  - Monitor clicks over time (last 30 days)
+  - Analyze individual link performance with detailed click data
+  - Track user behavior including IP addresses, user agents, and referrer URLs
+
 - **Settings Page**: Configure AI Engine integration and automation
   - Enable/disable AI Engine integration
   - Set API keys for AI Engine
@@ -32,6 +39,18 @@ The plugin registers two custom post types for organizing and managing referral 
 - **AI-Assisted Editing**: Posts are automatically updated with referral links
 - **Pending Approval Workflow**: AI-edited posts can be moved to "Pending Review" for manual approval
 - **Safe Defaults**: All automation features include safe default settings
+
+### User Behavior Analytics
+
+Track and analyze user interactions with your referral links:
+
+- **Automatic Click Tracking**: All referral links are automatically tracked when clicked
+- **Detailed Analytics**: View clicks, unique visitors, and trends over time
+- **Link Performance**: Identify your top-performing referral links
+- **User Insights**: Understand user behavior with IP tracking, user agent data, and referrer information
+- **Privacy-Conscious**: Uses validated IP addresses and follows WordPress security best practices
+- **Reliable Tracking**: Uses sendBeacon API when available for accurate click tracking even during page navigation
+
 
 ### Referral Link Management
 
@@ -165,6 +184,7 @@ wp-referral-link-maker/
 │   │   └── admin.js              # Admin JavaScript
 │   └── partials/
 │       ├── overview-page.php     # Overview page template
+│       ├── analytics-page.php    # Analytics page template
 │       └── settings-page.php     # Settings page template
 ├── includes/
 │   ├── class-activator.php       # Plugin activation
@@ -173,7 +193,11 @@ wp-referral-link-maker/
 │   ├── class-wp-referral-link-maker.php  # Core plugin class
 │   ├── class-post-types.php      # Custom post types
 │   ├── class-meta-boxes.php      # Meta box handlers
+│   ├── class-analytics.php       # Analytics tracking
 │   └── class-cron.php            # Cron job handlers
+├── public/
+│   └── js/
+│       └── analytics.js          # Frontend analytics tracking
 ├── languages/                     # Translation files
 ├── wp-referral-link-maker.php    # Main plugin file
 └── README.md                      # This file
@@ -210,6 +234,18 @@ Developed by rpnunez
 Designed to integrate with Meow Apps AI Engine
 
 ## Changelog
+
+### 1.1.0
+- Added comprehensive user behavior analytics tracking
+- New Analytics admin page with detailed statistics
+- Track link clicks, unique visitors, and user behavior
+- Top performing links display with click counts
+- Click trends over time (30-day view)
+- Individual link analytics with recent click details
+- Enhanced link insertion with tracking attributes
+- Improved security with IP validation and error handling
+- Reliable tracking using sendBeacon API
+- GMT timezone support for consistent timestamps
 
 ### 1.0.0
 - Initial release

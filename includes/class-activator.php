@@ -30,6 +30,9 @@ class WP_Referral_Link_Maker_Activator {
         
         // Schedule cron events
         self::schedule_cron_events();
+        
+        // Create analytics table
+        self::create_analytics_table();
     }
     
     /**
@@ -62,5 +65,34 @@ class WP_Referral_Link_Maker_Activator {
         if ( ! wp_next_scheduled( 'wp_referral_link_maker_process_posts' ) ) {
             wp_schedule_event( time(), 'daily', 'wp_referral_link_maker_process_posts' );
         }
+    }
+    
+    /**
+     * Create analytics table.
+     */
+    private static function create_analytics_table() {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'wp_rlm_analytics';
+        $charset_collate = $wpdb->get_charset_collate();
+        
+        $sql = "CREATE TABLE $table_name (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            referral_link_id bigint(20) NOT NULL,
+            post_id bigint(20) DEFAULT NULL,
+            user_id bigint(20) DEFAULT NULL,
+            click_time datetime NOT NULL,
+            user_ip varchar(100) NOT NULL DEFAULT '',
+            user_agent varchar(500) NOT NULL DEFAULT '',
+            referrer_url text NOT NULL DEFAULT '',
+            PRIMARY KEY  (id),
+            KEY referral_link_id (referral_link_id),
+            KEY post_id (post_id),
+            KEY user_id (user_id),
+            KEY click_time (click_time)
+        ) $charset_collate;";
+        
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+        dbDelta( $sql );
     }
 }

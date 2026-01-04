@@ -42,6 +42,7 @@ class WP_Referral_Link_Maker {
         $this->define_post_type_hooks();
         $this->define_meta_box_hooks();
         $this->define_cron_hooks();
+        $this->define_analytics_hooks();
     }
 
     /**
@@ -52,6 +53,7 @@ class WP_Referral_Link_Maker {
         require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'includes/class-post-types.php';
         require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'includes/class-cron.php';
         require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'includes/class-meta-boxes.php';
+        require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'includes/class-analytics.php';
         require_once WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'admin/class-admin.php';
 
         $this->loader = new WP_Referral_Link_Maker_Loader();
@@ -93,6 +95,13 @@ class WP_Referral_Link_Maker {
 
         $this->loader->add_action( 'wp_referral_link_maker_process_posts', $cron, 'process_posts' );
         $this->loader->add_filter( 'cron_schedules', $cron, 'add_custom_cron_intervals' );
+    }
+
+    /**
+     * Register all of the hooks related to analytics.
+     */
+    private function define_analytics_hooks() {
+        new WP_Referral_Link_Maker_Analytics();
     }
 
     /**
