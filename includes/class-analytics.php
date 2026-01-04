@@ -160,12 +160,17 @@ class WP_Referral_Link_Maker_Analytics {
     public static function get_overall_analytics() {
         global $wpdb;
 
+        // Table name uses $wpdb->prefix which is a trusted WordPress internal value
         $table_name = $wpdb->prefix . 'wp_rlm_analytics';
 
+        // These queries do not contain any user input, only trusted WordPress values
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         $total_clicks = $wpdb->get_var( "SELECT COUNT(*) FROM $table_name" );
 
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         $unique_users = $wpdb->get_var( "SELECT COUNT(DISTINCT user_ip) FROM $table_name" );
 
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         $clicks_by_link = $wpdb->get_results(
             "SELECT referral_link_id, COUNT(*) as click_count 
             FROM $table_name 
@@ -174,6 +179,7 @@ class WP_Referral_Link_Maker_Analytics {
             LIMIT 10"
         );
 
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         $clicks_by_date = $wpdb->get_results(
             "SELECT DATE(click_time) as date, COUNT(*) as click_count 
             FROM $table_name 
