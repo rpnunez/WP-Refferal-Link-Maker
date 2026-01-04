@@ -39,14 +39,14 @@ class Admin {
      * Register the stylesheets for the admin area.
      */
     public function enqueue_styles() {
-        wp_enqueue_style( $this->plugin_name, WP_REFERRAL_LINK_MAKER_PLUGIN_URL . 'admin/css/admin.css', array(), $this->version, 'all' );
+        wp_enqueue_style( $this->plugin_name, NRE_PLUGIN_URL . 'admin/css/admin.css', array(), $this->version, 'all' );
     }
 
     /**
      * Register the JavaScript for the admin area.
      */
     public function enqueue_scripts() {
-        wp_enqueue_script( $this->plugin_name, WP_REFERRAL_LINK_MAKER_PLUGIN_URL . 'admin/js/admin.js', array( 'jquery' ), $this->version, false );
+        wp_enqueue_script( $this->plugin_name, NRE_PLUGIN_URL . 'admin/js/admin.js', array( 'jquery' ), $this->version, false );
     }
 
     /**
@@ -113,7 +113,7 @@ class Admin {
         // Get statistics
         $stats = $this->get_statistics();
 
-        include WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'admin/partials/overview-page.php';
+        include NRE_PLUGIN_DIR . 'admin/partials/overview-page.php';
     }
 
     /**
@@ -125,7 +125,7 @@ class Admin {
             return;
         }
 
-        include WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'admin/partials/settings-page.php';
+        include NRE_PLUGIN_DIR . 'admin/partials/settings-page.php';
     }
 
     /**

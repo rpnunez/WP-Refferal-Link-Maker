@@ -54,11 +54,10 @@ Organize your referral links with groups that include:
 ## Installation
 
 1. Upload the `wp-referral-link-maker` folder to the `/wp-content/plugins/` directory
-2. Run `composer install --no-dev` in the plugin directory to generate the autoloader
-3. Activate the plugin through the 'Plugins' menu in WordPress
-4. Navigate to 'Referral Links' in the admin menu to configure the plugin
+2. Activate the plugin through the 'Plugins' menu in WordPress
+3. Navigate to 'Referral Links' in the admin menu to configure the plugin
 
-**Note**: The plugin requires the Composer autoloader. If you're installing from a release package, the `vendor/` directory should already be included.
+**Note**: The plugin is distributed with the Composer autoloader and all dependencies in the `vendor/` directory.
 
 ## Configuration
 

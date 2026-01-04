@@ -35,7 +35,7 @@ class Plugin {
      * Define the core functionality of the plugin.
      */
     public function __construct() {
-        $this->version = WP_REFERRAL_LINK_MAKER_VERSION;
+        $this->version = NRE_VERSION;
         $this->plugin_name = 'wp-referral-link-maker';
 
         $this->initialize();

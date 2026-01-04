@@ -22,17 +22,17 @@ if ( ! defined( 'WPINC' ) ) {
 /**
  * Currently plugin version.
  */
-define( 'WP_REFERRAL_LINK_MAKER_VERSION', '1.0.0' );
-define( 'WP_REFERRAL_LINK_MAKER_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
-define( 'WP_REFERRAL_LINK_MAKER_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+define( 'NRE_VERSION', '1.0.0' );
+define( 'NRE_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+define( 'NRE_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 /**
  * Require Composer autoloader.
  */
-$autoload_file = WP_REFERRAL_LINK_MAKER_PLUGIN_DIR . 'vendor/autoload.php';
+$autoload_file = NRE_PLUGIN_DIR . 'vendor/autoload.php';
 if ( ! file_exists( $autoload_file ) ) {
     wp_die(
-        esc_html__( 'WP Referral Link Maker: Composer autoloader not found. Please run "composer install" in the plugin directory.', 'wp-referral-link-maker' ),
+        esc_html__( 'WP Referral Link Maker: Composer autoloader not found. The plugin installation may be incomplete or corrupted.', 'wp-referral-link-maker' ),
         esc_html__( 'Plugin Dependency Error', 'wp-referral-link-maker' ),
         array( 'back_link' => true )
     );
