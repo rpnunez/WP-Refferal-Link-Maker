@@ -57,8 +57,7 @@ class PostsProcessor {
             )
         );
 
-        $query = new \WP_Query( $args );
-        return $query->posts;
+        return get_posts( $args );
     }
 
     /**
@@ -156,7 +155,6 @@ class PostsProcessor {
             'posts_per_page' => -1,
         );
 
-        $query = new \WP_Query( $args );
-        return $query->posts;
+        return get_posts( $args );
     }
 }

@@ -26,10 +26,15 @@ class Cron {
 
     /**
      * Constructor.
+     *
+     * @param PostsProcessor|null $posts_processor Optional posts processor service.
      */
-    public function __construct() {
-        $link_injector = new LinkInjector();
-        $this->posts_processor = new PostsProcessor( $link_injector );
+    public function __construct( PostsProcessor $posts_processor = null ) {
+        if ( null === $posts_processor ) {
+            $link_injector = new LinkInjector();
+            $posts_processor = new PostsProcessor( $link_injector );
+        }
+        $this->posts_processor = $posts_processor;
     }
 
     /**
