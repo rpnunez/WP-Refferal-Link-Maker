@@ -163,6 +163,14 @@ class WP_Referral_Link_Maker_Admin {
             'wp_referral_link_maker_ai_engine'
         );
 
+        add_settings_field(
+            'global_ai_context',
+            __( 'Global AI Context', 'wp-referral-link-maker' ),
+            array( $this, 'global_ai_context_callback' ),
+            'wp-referral-link-maker-settings',
+            'wp_referral_link_maker_ai_engine'
+        );
+
         // Add automation section
         add_settings_section(
             'wp_referral_link_maker_automation',
@@ -221,6 +229,10 @@ class WP_Referral_Link_Maker_Admin {
             $sanitized['api_key'] = sanitize_text_field( $input['api_key'] );
         }
 
+        if ( isset( $input['global_ai_context'] ) ) {
+            $sanitized['global_ai_context'] = sanitize_textarea_field( $input['global_ai_context'] );
+        }
+
         if ( isset( $input['auto_update_enabled'] ) ) {
             $sanitized['auto_update_enabled'] = (bool) $input['auto_update_enabled'];
         }
@@ -277,6 +289,18 @@ class WP_Referral_Link_Maker_Admin {
         ?>
         <input type="text" name="wp_referral_link_maker_settings[api_key]" value="<?php echo esc_attr( $value ); ?>" class="regular-text" />
         <p class="description"><?php esc_html_e( 'Enter your AI Engine API key.', 'wp-referral-link-maker' ); ?></p>
+        <?php
+    }
+
+    /**
+     * Global AI Context field callback.
+     */
+    public function global_ai_context_callback() {
+        $settings = get_option( 'wp_referral_link_maker_settings' );
+        $value = isset( $settings['global_ai_context'] ) ? $settings['global_ai_context'] : '';
+        ?>
+        <textarea name="wp_referral_link_maker_settings[global_ai_context]" rows="5" cols="50" class="large-text"><?php echo esc_textarea( $value ); ?></textarea>
+        <p class="description"><?php esc_html_e( 'Provide global context for the AI (e.g., "This is a web development blog focusing on React and PHP"). This helps the AI understand the overall theme.', 'wp-referral-link-maker' ); ?></p>
         <?php
     }
 
