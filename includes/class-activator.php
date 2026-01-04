@@ -81,7 +81,7 @@ class WP_Referral_Link_Maker_Activator {
             referral_link_id bigint(20) NOT NULL,
             post_id bigint(20) DEFAULT NULL,
             user_id bigint(20) DEFAULT NULL,
-            click_time datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            click_time datetime NOT NULL,
             user_ip varchar(100) DEFAULT '' NOT NULL,
             user_agent text DEFAULT '' NOT NULL,
             referrer_url text DEFAULT '' NOT NULL,

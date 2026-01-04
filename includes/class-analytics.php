@@ -63,13 +63,18 @@ class WP_Referral_Link_Maker_Analytics {
             'referral_link_id' => $referral_link_id,
             'post_id'          => $post_id,
             'user_id'          => get_current_user_id(),
-            'click_time'       => current_time( 'mysql' ),
+            'click_time'       => current_time( 'mysql', 1 ), // Use GMT time
             'user_ip'          => $this->get_user_ip(),
             'user_agent'       => $this->get_user_agent(),
             'referrer_url'     => $referrer_url,
         );
 
-        $wpdb->insert( $table_name, $data );
+        $result = $wpdb->insert( $table_name, $data );
+
+        if ( false === $result ) {
+            wp_send_json_error( array( 'message' => 'Failed to track click' ) );
+            return;
+        }
 
         wp_send_json_success( array( 'message' => 'Click tracked successfully' ) );
     }
@@ -82,15 +87,27 @@ class WP_Referral_Link_Maker_Analytics {
     private function get_user_ip() {
         $ip = '';
 
-        if ( ! empty( $_SERVER['HTTP_CLIENT_IP'] ) ) {
+        // Check for IP from reverse proxy headers
+        if ( ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
+            // HTTP_X_FORWARDED_FOR can contain multiple IPs, get the first one
+            $ip_list = explode( ',', $_SERVER['HTTP_X_FORWARDED_FOR'] );
+            $ip = trim( $ip_list[0] );
+        } elseif ( ! empty( $_SERVER['HTTP_CLIENT_IP'] ) ) {
             $ip = $_SERVER['HTTP_CLIENT_IP'];
-        } elseif ( ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
-            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
         } elseif ( ! empty( $_SERVER['REMOTE_ADDR'] ) ) {
             $ip = $_SERVER['REMOTE_ADDR'];
         }
 
-        return sanitize_text_field( $ip );
+        // Validate IP address format
+        $ip = sanitize_text_field( $ip );
+        
+        // Validate as IPv4 or IPv6
+        if ( filter_var( $ip, FILTER_VALIDATE_IP ) ) {
+            return $ip;
+        }
+
+        // Return empty string if invalid IP
+        return '';
     }
 
     /**
