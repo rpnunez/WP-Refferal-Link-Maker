@@ -38,7 +38,7 @@ class WP_Referral_Link_Maker_Block_Editor {
         wp_enqueue_script(
             'wp-rlm-block-editor',
             WP_REFERRAL_LINK_MAKER_PLUGIN_URL . 'admin/js/block-editor.js',
-            array( 'wp-plugins', 'wp-edit-post', 'wp-element', 'wp-components', 'wp-data' ),
+            array( 'wp-plugins', 'wp-edit-post', 'wp-element', 'wp-components', 'wp-data', 'jquery' ),
             WP_REFERRAL_LINK_MAKER_VERSION,
             true
         );

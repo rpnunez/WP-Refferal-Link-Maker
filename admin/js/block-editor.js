@@ -235,6 +235,7 @@
                                         {wpRlmBlockEditor.i18n.closePreview}
                                     </Button>
                                 </div>
+                                {/* Content is sanitized on server-side using wp_kses_post before being sent */}
                                 <div 
                                     className="wp-rlm-preview-body"
                                     dangerouslySetInnerHTML={{ __html: previewContent }}
