@@ -7,6 +7,11 @@
 
 namespace NunezReferralEngine;
 
+use NunezReferralEngine\PostTypes\LinkGroup;
+use NunezReferralEngine\PostTypes\LinkMaker;
+use NunezReferralEngine\MetaBoxes\LinkGroup as LinkGroupMetaBoxes;
+use NunezReferralEngine\MetaBoxes\LinkMaker as LinkMakerMetaBoxes;
+
 /**
  * The core plugin class.
  *
@@ -59,16 +64,16 @@ class Plugin {
      * Register all of the hooks related to custom post types.
      */
     private function define_post_type_hooks() {
-        $post_types = new PostTypes();
-
-        add_action( 'init', array( $post_types, 'register_post_types' ) );
+        add_action( 'init', array( 'NunezReferralEngine\PostTypes\LinkGroup', 'register' ) );
+        add_action( 'init', array( 'NunezReferralEngine\PostTypes\LinkMaker', 'register' ) );
     }
 
     /**
      * Register all of the hooks related to meta boxes.
      */
     private function define_meta_box_hooks() {
-        new MetaBoxes();
+        new LinkGroupMetaBoxes();
+        new LinkMakerMetaBoxes();
     }
 
     /**
