@@ -2,7 +2,7 @@
 /**
  * Fired when the plugin is uninstalled
  *
- * @package    WP_Referral_Link_Maker
+ * @package    NunezReferralEngine
  */
 
 // If uninstall not called from WordPress, then exit.
