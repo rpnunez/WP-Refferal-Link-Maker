@@ -5,7 +5,7 @@
  * @package    NunezReferralEngine
  */
 
-namespace NunezReferralEngine;
+namespace NunezReferralEngine\Services;
 
 /**
  * Handle integration with Meow Apps AI Engine plugin.
@@ -13,7 +13,7 @@ namespace NunezReferralEngine;
  * This class provides methods to interact with the AI Engine plugin
  * for intelligent referral link insertion.
  */
-class AIEngineService {
+class AIEngine {
 
     /**
      * Minimum response length threshold as percentage of original content.
@@ -28,6 +28,20 @@ class AIEngineService {
      * @var int
      */
     const CHUNK_SIZE = 2000;
+
+    /**
+     * Prompt manager instance.
+     *
+     * @var PromptManager
+     */
+    private $prompt_manager;
+
+    /**
+     * Constructor.
+     */
+    public function __construct() {
+        $this->prompt_manager = new PromptManager();
+    }
 
     /**
      * Check if AI Engine plugin is available.
@@ -125,9 +139,9 @@ class AIEngineService {
      * @return string|WP_Error   Modified chunk or error.
      */
     private function process_single_chunk( $chunk, $links_info ) {
-        // Build instructions and message
-        $instructions = $this->build_ai_instructions( $links_info );
-        $message = "Here is the content section to process:\n\n" . $this->escape_prompt_content( $chunk );
+        // Build instructions and message using PromptManager
+        $instructions = $this->prompt_manager->build_ai_instructions( $links_info );
+        $message = "Here is the content section to process:\n\n" . $this->prompt_manager->escape_prompt_content( $chunk );
 
         try {
             global $mwai_core;
@@ -139,7 +153,7 @@ class AIEngineService {
 
             // Use Meow_MWAI_Query_Text for better control
             if ( class_exists( 'Meow_MWAI_Query_Text' ) ) {
-                $query = new Meow_MWAI_Query_Text( $message );
+                $query = new \Meow_MWAI_Query_Text( $message );
                 $query->set_instructions( $instructions );
                 $query->set_temperature( 0.2 ); // Smart default: Low temp for precision
 
@@ -219,65 +233,6 @@ class AIEngineService {
         }
 
         return $chunks;
-    }
-
-    /**
-     * Build AI instructions (System Prompt).
-     *
-     * @param array $links_info Array of link information.
-     * @return string Instructions.
-     */
-    private function build_ai_instructions( $links_info ) {
-        $settings = get_option( 'wp_referral_link_maker_settings', array() );
-        $link_rel = isset( $settings['link_rel_attribute'] ) ? $settings['link_rel_attribute'] : 'nofollow';
-        $global_context = isset( $settings['global_ai_context'] ) ? $settings['global_ai_context'] : '';
-        
-        // Validate rel
-        $link_rel = wp_referral_link_maker_sanitize_rel_attribute( $link_rel );
-
-        $links_description = '';
-        foreach ( $links_info as $link ) {
-            $links_description .= sprintf(
-                "- Keyword: '%s', URL: '%s'",
-                $link['keyword'],
-                esc_url_raw( $link['url'] )
-            );
-            if ( ! empty( $link['context'] ) ) {
-                $links_description .= sprintf( " (Context: %s)", $link['context'] );
-            }
-            $links_description .= "\n";
-        }
-
-        $instructions = "You are a specialized content editor for a WordPress blog.\n";
-        if ( ! empty( $global_context ) ) {
-            $instructions .= "BLOG CONTEXT: " . $global_context . "\n";
-        }
-        
-        $instructions .= "\nTASK: Insert the provided referral links into the text naturally. Do not rewrite the entire text, only modify sentences to insert links where relevant.\n";
-        $instructions .= "RULES:\n";
-        $instructions .= "1. Maintain the original HTML structure exactly.\n";
-        $instructions .= "2. Return ONLY the HTML for the section provided.\n";
-        $instructions .= "3. Do not add markdown code blocks (```html).\n";
-        if ( ! empty( $link_rel ) ) {
-            $instructions .= sprintf( "4. Use <a href='...' rel='%s'>keyword</a>.\n", esc_attr( $link_rel ) );
-        } else {
-            $instructions .= "4. Use standard <a href='...'> tags.\n";
-        }
-        
-        $instructions .= "\nLINKS TO INSERT:\n" . $links_description;
-
-        return $instructions;
-    }
-
-    /**
-     * Escape content for AI prompt to prevent prompt injection.
-     *
-     * @param string $content Content to escape.
-     * @return string Escaped content.
-     */
-    private function escape_prompt_content( $content ) {
-        // Simple escaping to prevent confusion with instructions
-        return str_replace( array( 'INSTRUCTIONS:', 'SYSTEM:', 'USER:' ), '', $content );
     }
 
     /**
