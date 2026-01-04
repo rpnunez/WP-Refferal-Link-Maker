@@ -13,7 +13,7 @@ namespace NunezReferralEngine;
  * This class provides methods to interact with the AI Engine plugin
  * for intelligent referral link insertion.
  */
-class AIEngine {
+class AIEngineService {
 
     /**
      * Minimum response length threshold as percentage of original content.

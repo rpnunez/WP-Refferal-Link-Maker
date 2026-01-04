@@ -177,7 +177,7 @@ wp-referral-link-maker/
 │   ├── PostTypes.php             # Custom post types
 │   ├── MetaBoxes.php             # Meta box handlers
 │   ├── Cron.php                  # Cron job handlers
-│   ├── AIEngine.php              # AI Engine integration
+│   ├── AIEngineService.php       # AI Engine integration
 │   └── Admin.php                 # Admin functionality
 ├── vendor/                        # Composer autoloader (generated)
 ├── composer.json                  # Composer configuration
