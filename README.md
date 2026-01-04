@@ -54,8 +54,11 @@ Organize your referral links with groups that include:
 ## Installation
 
 1. Upload the `wp-referral-link-maker` folder to the `/wp-content/plugins/` directory
-2. Activate the plugin through the 'Plugins' menu in WordPress
-3. Navigate to 'Referral Links' in the admin menu to configure the plugin
+2. Run `composer install --no-dev` in the plugin directory to generate the autoloader
+3. Activate the plugin through the 'Plugins' menu in WordPress
+4. Navigate to 'Referral Links' in the admin menu to configure the plugin
+
+**Note**: The plugin requires the Composer autoloader. If you're installing from a release package, the `vendor/` directory should already be included.
 
 ## Configuration
 
@@ -111,7 +114,8 @@ This plugin is designed to work with the [Meow Apps AI Engine](https://wordpress
 ### Requirements
 
 - WordPress 5.0 or higher
-- PHP 7.2 or higher
+- PHP 7.4 or higher
+- Composer (for development and autoloading)
 - AI Engine plugin (optional, for AI features)
 
 ### How It Works
@@ -158,7 +162,6 @@ The plugin follows WordPress security best practices:
 ```
 wp-referral-link-maker/
 ├── admin/
-│   ├── class-admin.php           # Admin functionality
 │   ├── css/
 │   │   └── admin.css             # Admin styles
 │   ├── js/
@@ -166,17 +169,30 @@ wp-referral-link-maker/
 │   └── partials/
 │       ├── overview-page.php     # Overview page template
 │       └── settings-page.php     # Settings page template
-├── includes/
-│   ├── class-activator.php       # Plugin activation
-│   ├── class-deactivator.php     # Plugin deactivation
-│   ├── class-loader.php          # Hook loader
-│   ├── class-wp-referral-link-maker.php  # Core plugin class
-│   ├── class-post-types.php      # Custom post types
-│   ├── class-meta-boxes.php      # Meta box handlers
-│   └── class-cron.php            # Cron job handlers
+├── src/                           # PSR-4 autoloaded classes (NunezReferralEngine namespace)
+│   ├── Plugin.php                # Core plugin class
+│   ├── Activator.php             # Plugin activation
+│   ├── Deactivator.php           # Plugin deactivation
+│   ├── Loader.php                # Hook loader
+│   ├── PostTypes.php             # Custom post types
+│   ├── MetaBoxes.php             # Meta box handlers
+│   ├── Cron.php                  # Cron job handlers
+│   ├── AIEngine.php              # AI Engine integration
+│   └── Admin.php                 # Admin functionality
+├── vendor/                        # Composer autoloader (generated)
+├── composer.json                  # Composer configuration
 ├── languages/                     # Translation files
 ├── wp-referral-link-maker.php    # Main plugin file
 └── README.md                      # This file
+```
+
+### PSR-4 Autoloading
+
+The plugin uses Composer for PSR-4 autoloading with the namespace `NunezReferralEngine`. All classes are located in the `src/` directory and follow PSR-4 naming conventions.
+
+To regenerate the autoloader after changes:
+```bash
+composer dump-autoload
 ```
 
 ### Hooks and Filters
