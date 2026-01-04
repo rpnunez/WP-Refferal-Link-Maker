@@ -85,8 +85,7 @@ register_deactivation_hook( __FILE__, 'deactivate_wp_referral_link_maker' );
  * Begins execution of the plugin.
  */
 function run_wp_referral_link_maker() {
-    $plugin = new Plugin();
-    $plugin->run();
+    new Plugin();
 }
 
 run_wp_referral_link_maker();

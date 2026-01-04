@@ -172,7 +172,6 @@ wp-referral-link-maker/
 │   ├── Plugin.php                # Core plugin class
 │   ├── Activator.php             # Plugin activation
 │   ├── Deactivator.php           # Plugin deactivation
-│   ├── Loader.php                # Hook loader
 │   ├── PostTypes.php             # Custom post types
 │   ├── MetaBoxes.php             # Meta box handlers
 │   ├── Cron.php                  # Cron job handlers
